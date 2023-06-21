@@ -1,0 +1,29 @@
+kind: Config
+apiVersion: imageregistry.operator.openshift.io/v1
+metadata:
+  name: cluster
+spec:
+  managementState: Managed
+{% if ocp4_deployment_cluster_registry_expose %}
+  defaultRoute: true
+{% else %}
+  defaultRoute: false
+{% endif %}
+{% if groups.infra_nodes | length > 0 %}
+  tolerations:
+{% filter indent(4, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+  nodeSelector:
+{% filter indent(4, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+  replicas: {{ ocp4_deployment_cluster_registry_replicas }}
+  storage:
+{% if ocp4_deployment_cluster_registry_storage_config is defined %}
+    pvc:
+      claim: {{ ocp4_deployment_cluster_registry_storage_config.metadata.name }}
+{% else %}
+    emptyDir: {}
+{% endif %}

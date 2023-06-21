@@ -1,0 +1,45 @@
+- name: Deploy Cluster
+  hosts:
+    - bootstrap
+    - master_nodes
+    - worker_nodes
+    - infra_nodes
+    - storage_nodes
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Pre-Deploy VMware Tasks
+      ansible.builtin.import_role:
+        name: fcarrus.ocp4_deployment.deploy_vmware
+        tasks_from: pre_deploy.yml
+      when: ocp4_deployment_platform_provider == 'vmware'
+
+    - name: Deploy VMware VMs
+      ansible.builtin.import_role:
+        name: fcarrus.ocp4_deployment.deploy_vmware
+        tasks_from: deploy.yml
+      when: ocp4_deployment_platform_provider == 'vmware'
+
+    - name: Wait for bootstrap to complete
+      delegate_to: localhost
+      run_once: true
+      ansible.builtin.command:
+        chdir: "{{ ocp4_deployment_install_path }}"
+        cmd: openshift-install wait-for bootstrap-complete --dir=./install
+      changed_when: true
+
+    - name: Post-Deploy VMware Tasks
+      ansible.builtin.import_role:
+        name: fcarrus.ocp4_deployment.deploy_vmware
+        tasks_from: post_deploy.yml
+      when: ocp4_deployment_platform_provider == 'vmware'
+
+    - name: Wait for installation to complete
+      delegate_to: localhost
+      run_once: true
+      ansible.builtin.command:
+        chdir: "{{ ocp4_deployment_install_path }}"
+        cmd: openshift-install wait-for install-complete --dir=./install
+      changed_when: true
+
+# code: language=ansible

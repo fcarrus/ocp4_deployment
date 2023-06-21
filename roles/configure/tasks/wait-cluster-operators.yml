@@ -1,0 +1,30 @@
+- name: Wait a few seconds for operators to start
+  ansible.builtin.pause:
+    prompt: "Wait a few seconds for operators to start"
+    seconds: 10
+
+# Wait until there are no degraded or progressing operators
+- name: Wait for Cluster Operators to Settle
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    kind: ClusterOperator
+  register: _ocp4_cluster_operators_info
+  retries: "{{ 4 * ( ansible_play_hosts | length ) }}"
+  delay: 60
+  until: |
+    _ocp4_cluster_operators_info.resources |
+    map(attribute="status.conditions") |
+    flatten |
+    selectattr("type","equalto","Progressing") |
+    selectattr("status","equalto","True") |
+    length
+      +
+    _ocp4_cluster_operators_info.resources |
+    map(attribute="status.conditions") |
+    flatten |
+    selectattr("type","equalto","Degraded") |
+    selectattr("status","equalto","True") |
+    length == 0
+
+# code: language=ansible

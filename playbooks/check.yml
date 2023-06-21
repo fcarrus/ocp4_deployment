@@ -1,0 +1,231 @@
+- name: Check Required Variables
+  hosts: all
+  become: false
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+
+    - name: Check vars - bastion server is 1
+      run_once: true
+      ansible.builtin.assert:
+        that:
+          - groups.bastion is defined
+          - groups.bastion | length == 1
+        fail_msg: "Bastion group does not contain exactly one server."
+
+    - name: Check vars - bootstrap server is 1
+      run_once: true
+      ansible.builtin.assert:
+        that:
+          - groups.bootstrap is defined
+          - groups.bootstrap | length == 1
+        fail_msg: "Bootstrap group does not contain exactly one server."
+
+    - name: Check vars - master servers are 3 unless SNO
+      when: not ocp4_deployment_cluster_is_singlenode
+      ansible.builtin.assert:
+        that:
+          - groups.master_nodes is defined
+          - groups.master_nodes | length == 3
+        fail_msg: "Masters group does not contain exactly 3 servers."
+
+    - name: Check vars - master server is 1 when SNO
+      when: ocp4_deployment_cluster_is_singlenode
+      ansible.builtin.assert:
+        that:
+          - groups.master_nodes is defined
+          - groups.master_nodes | length == 1
+        fail_msg: "Masters group does not contain exactly 1 server."
+
+    # - name: Check vars - infras servers
+    #   ansible.builtin.assert:
+    #     that:
+    #       - groups.infra_nodes is defined
+    #       - groups.infra_nodes | length > 0
+    #     fail_msg: "The infras group does not contain exactly 3 servers."
+
+    - name: Check vars - workers servers > 0 unless SNO or Compact
+      when:
+        - not ocp4_deployment_cluster_is_singlenode
+        - not ocp4_deployment_cluster_is_compact
+      ansible.builtin.assert:
+        that:
+          - groups.worker_nodes is defined
+          - groups.worker_nodes | length > 0
+        fail_msg: "Workers group does not contain enough servers."
+
+    - name: Check vars - odf storage servers are % 3 or none
+      when: ocp4_deployment_cluster_odf_install | d(false) | bool
+      ansible.builtin.assert:
+        that:
+          - groups.storage_nodes is defined
+          - ( groups.storage_nodes | length %3 ) == 0
+        fail_msg: "Storage group list of servers is not valid."
+
+    - name: Check vars - ocp4_deployment_platform_provider
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_platform_provider is defined
+          - ocp4_deployment_platform_provider in ['vmware']
+          # - more to add
+        fail_msg: "Variable ocp4_deployment_platform_provider is not valid."
+
+    - name: Check vars - versions
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_cluster_version is defined
+          - ocp4_deployment_cluster_rhcos_version is defined
+          # - ocp4_ocs_version
+        fail_msg: "One of the ocp4_*_version variables is not defined."
+
+    - name: Check vars - dns
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_nodes_dns_servers is defined
+          - ocp4_deployment_nodes_dns_servers is iterable
+          - ocp4_deployment_nodes_dns_servers is not string
+          - ocp4_deployment_nodes_dns_servers is not mapping
+          - ocp4_deployment_nodes_dns_servers | length > 0
+        fail_msg: "Variable ocp4_deployment_nodes_dns_servers is not valid."
+
+    - name: Check vars - ntpservers
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_nodes_ntp_servers is defined
+          - ocp4_deployment_nodes_ntp_servers is iterable
+          - ocp4_deployment_nodes_ntp_servers is not string
+          - ocp4_deployment_nodes_ntp_servers is not mapping
+          - ocp4_deployment_nodes_ntp_servers | length > 0
+        fail_msg: "Variable ocp4_deployment_nodes_ntp_servers is not valid."
+
+    - name: Check vars - resolve API and Ingress FQDNs
+      run_once: true
+      when: ocp4_deployment_is_agnostic | bool
+      ansible.builtin.assert:
+        that:
+          - |
+            lookup(
+              'community.general.dig',
+              'api.{{ ocp4_deployment_cluster_name }}.{{ ocp4_deployment_cluster_basedomain }}./A'
+            ) | ansible.utils.ipaddr('address')
+          - |
+            lookup(
+              'community.general.dig',
+              'api-int.{{ ocp4_deployment_cluster_name }}.{{ ocp4_deployment_cluster_basedomain }}./A'
+            ) | ansible.utils.ipaddr('address')
+          - |
+            lookup(
+              'community.general.dig',
+              'test.apps.{{ ocp4_deployment_cluster_name }}.{{ ocp4_deployment_cluster_basedomain }}./A'
+            ) | ansible.utils.ipaddr('address')
+        fail_msg: "One of api, api-int or ingress FQDNs does not resolve"
+
+    - name: Check vars - vmware
+      when: ocp4_deployment_platform_provider == 'vmware'
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_vmware_vcenter_hostname is defined
+          - ocp4_deployment_vmware_vcenter_username is defined
+          - ocp4_deployment_vmware_vcenter_password is defined
+        fail_msg: "One of the vmware_vcenter_* parameters is not valid."
+
+    - name: Check vars - proxy
+      when: ocp4_deployment_proxy_env_variables is defined
+      ansible.builtin.assert:
+        that:
+          - '"http_proxy" in ocp4_deployment_proxy_env_variables'
+          - '"https_proxy" in ocp4_deployment_proxy_env_variables'
+          - '"no_proxy" in ocp4_deployment_proxy_env_variables'
+        fail_msg: "One of the ocp4_deployment_proxy_env_variables parameters is not defined."
+
+    - name: Check vars - domain and cluster name
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_cluster_basedomain is defined
+          - ocp4_deployment_cluster_name is defined
+        fail_msg: "The ocp4_deployment_cluster_basedomain or ocp4_deployment_cluster_name parameter is not defined."
+
+    - name: Check vars - vmware-ocp related
+      when: ocp4_deployment_platform_provider == 'vmware'
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_vmware_cluster is defined
+          - ocp4_deployment_vmware_datacenter is defined
+          - ocp4_deployment_vmware_datastore is defined
+          - ocp4_deployment_vmware_network is defined
+          - ocp4_deployment_vmware_vcenter_folder is defined
+        fail_msg: "One of the vmware_cluster_* parameters is not defined."
+
+    - name: Check vars - identity provider
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_cluster_identity_providers is defined
+          - ocp4_deployment_cluster_identity_providers is iterable
+          - ocp4_deployment_cluster_identity_providers is not string
+          - ocp4_deployment_cluster_identity_providers is not mapping
+          # - ocp4_deployment_cluster_identity_providers | length > 0
+        fail_msg: "Variable ocp4_deployment_cluster_identity_providers is not valid."
+
+    - name: Check vars - CoreOS ssh key
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_cluster_coreos_ssh_pubkey is defined
+        fail_msg: "Variable ocp4_deployment_cluster_coreos_ssh_pubkey parameter is not defined."
+
+    - name: Check vars - install path
+      when: inventory_hostname in groups.bastion
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_install_path is defined
+        fail_msg: "Variable ocp4_deployment_install_path parameter is not defined."
+
+    # - name: Check vars - trust bundle
+    #   ansible.builtin.assert:
+    #     that:
+    #       - ocp4_deployment_cluster_trust_bundle is defined
+    #     fail_msg: "Variable ocp4_deployment_cluster_trust_bundle parameter is not defined."
+
+    - name: Check vars - check VM parameters
+      when: inventory_hostname not in groups.bastion
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_nodes_ipaddress is defined
+          - ocp4_deployment_nodes_ipaddress | ansible.utils.ipaddr('address')
+          # - ocp4_deployment_nodes_gateway is defined
+          # - ocp4_deployment_nodes_gateway | ansible.utils.ipaddr('address')
+          - ocp4_deployment_nodes_netmask is defined
+          - ocp4_deployment_nodes_netmask | ansible.utils.ipaddr('netmask')
+        fail_msg: "One or more of the servers is missing a parameter (ocp4_nodes_{ipaddress,gateway,netmask})."
+
+    - name: Check vars - Red Hat pull secret
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_cluster_pull_secret is defined
+        fail_msg: "Variable ocp4_deployment_cluster_pull_secret variable not defined or is empty."
+
+    - name: Check vars - wildcard certificate
+      when: ocp4_deployment_cluster_wildcard_certificate_replace | d(false) | bool
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_cluster_wildcard_ssl_cert is defined
+          - ocp4_deployment_cluster_wildcard_ssl_key is defined
+        fail_msg: "One of ocp4_deployment_cluster_wildcard_ssl_cert or ocp4_deployment_cluster_wildcard_ssl_key variables is not defined."
+
+    # - name: Check vars - Registries
+    #   ansible.builtin.assert:
+    #     that:
+    #       - insecure_registries is defined
+    #       - allowed_registries is defined
+    #     fail_msg: "The registries variable not defined or is empty."
+
+    - name: Check storage_cluster_size
+      when:
+        - ocp4_deployment_cluster_odf_install | bool
+        - not ocp4_deployment_cluster_odf_use_localstorage | bool
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_cluster_odf_dynprov_size is defined
+          - ocp4_deployment_cluster_odf_dynprov_size in ['0.5Ti', '2Ti', '4Ti']
+        fail_msg: "Variable ocp4_deployment_cluster_odf_dynprov_size is not supported"
+
+# code: language=ansible

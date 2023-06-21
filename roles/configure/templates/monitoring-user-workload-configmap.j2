@@ -1,0 +1,36 @@
+data:
+  config.yaml: |
+    prometheus:
+      retention: {{ ocp4_deployment_cluster_monitoring_userworkload_prometheus_retention }}
+{% if ocp4_deployment_cluster_monitoring_userworkload_prometheus_volumeclaim_spec is defined and ocp4_deployment_cluster_monitoring_userworkload_prometheus_volumeclaim_spec != {} %}
+      volumeClaimTemplate:
+        metadata:
+          name: userworkload-prometheus-volume
+        spec:
+{% filter indent(10, True) -%}
+{{ ocp4_deployment_cluster_monitoring_userworkload_prometheus_volumeclaim_spec | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+{% if groups.infra_nodes | length > 0 %}
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+      - key: infra
+        value: reserved
+        effect: "NoSchedule"
+      - key: infra
+        value: reserved
+        effect: "NoExecute"
+{% endif %}
+    thanosRuler:
+{% if groups.infra_nodes | length > 0 %}
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+      - key: infra
+        value: reserved
+        effect: "NoSchedule"
+      - key: infra
+        value: reserved
+        effect: "NoExecute"
+{% endif %}

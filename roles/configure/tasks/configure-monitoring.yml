@@ -1,0 +1,19 @@
+- name: Configure monitoring
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: ConfigMap
+    name: cluster-monitoring-config
+    namespace: openshift-monitoring
+    definition: "{{ lookup('template', 'monitoring-configmap.j2') }}"
+
+- name: Configure user workload monitoring
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: ConfigMap
+    name: user-workload-monitoring-config
+    namespace: openshift-user-workload-monitoring
+    definition: "{{ lookup('template', 'monitoring-user-workload-configmap.j2') }}"
+
+# code: language=ansible

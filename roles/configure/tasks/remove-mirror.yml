@@ -1,0 +1,13 @@
+- name: Delete mirror
+  local_action: k8s
+  args:
+    kubeconfig: ./kubeconfig
+    kind: ImageContentSourcePolicy
+    name: "{{ item }}"
+    api_version: operator.openshift.io/v1alpha1
+    state: absent
+  loop:
+    - image-policy-0
+    - image-policy-1
+
+# code: language=ansible

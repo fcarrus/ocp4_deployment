@@ -1,0 +1,129 @@
+data:
+  config.yaml: |
+    enableUserWorkload: {{ ocp4_deployment_cluster_monitoring_enable_userworkload }}
+
+{% if groups.infra_nodes | length > 0 %}
+    prometheusOperator:
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+    prometheusK8s:
+      retention: {{ ocp4_deployment_cluster_monitoring_prometheus_retention }}
+{% if ocp4_deployment_cluster_monitoring_prometheus_volumeclaim_spec is defined and ocp4_deployment_cluster_monitoring_prometheus_volumeclaim_spec != {} %}
+      volumeClaimTemplate:
+        metadata:
+          name: prometheus-volume
+        spec:
+{% filter indent(10, True) -%}
+{{ ocp4_deployment_cluster_monitoring_prometheus_volumeclaim_spec | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+
+{% if groups.infra_nodes | length > 0 %}
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+    alertmanagerMain:
+{% if ocp4_deployment_cluster_monitoring_alertmanager_volumeclaim_spec is defined and ocp4_deployment_cluster_monitoring_alertmanager_volumeclaim_spec != {} %}
+      volumeClaimTemplate:
+        metadata:
+          name: alertmanager-volume
+        spec:
+{% filter indent(10, True) -%}
+{{ ocp4_deployment_cluster_monitoring_alertmanager_volumeclaim_spec | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+{% if groups.infra_nodes | length > 0 %}
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+
+{% if groups.infra_nodes | length > 0 %}
+    kubeStateMetrics:
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+
+{% if groups.infra_nodes | length > 0 %}
+    grafana:
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+
+{% if groups.infra_nodes | length > 0 %}
+    telemeterClient:
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+
+{% if groups.infra_nodes | length > 0 %}
+    k8sPrometheusAdapter:
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+
+{% if groups.infra_nodes | length > 0 %}
+    openshiftStateMetrics:
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+
+{% if groups.infra_nodes | length > 0 %}
+    thanosQuerier:
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}

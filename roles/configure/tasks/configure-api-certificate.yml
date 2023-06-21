@@ -1,0 +1,60 @@
+# - name: Fetch current kubeconfig certificate-authority-data
+#   delegate_to: localhost
+#   run_once: true
+#   check_mode: false
+#   ansible.builtin.command:
+#     cmd: oc config view -o jsonpath=\{.clusters\[?(@.name == "{{ ocp4_deployment_cluster_name }}")].cluster.certificate-authority-data} --raw
+#     # | base64 -d
+#   changed_when: false
+#   register: _ocp4_deployment_cluster_kubeconfig_ca
+
+# - name: Add Trusted CA to kubeconfig
+#   run_once: true
+#   debug:
+#     msg: "{{ _ocp4_deployment_cluster_kubeconfig_ca.stdout + ocp4_deployment_cluster_trust_bundle }}"
+# - fail:
+- name: Create API certificate secret
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: Secret
+    namespace: openshift-config
+    name: api-certificate
+    definition: "{{ lookup('template', 'api-certificate-secret.j2') }}"
+
+- name: Patch API server to accept custom Certificate
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: APIServer
+    api_version: config.openshift.io/v1
+    name: cluster
+    definition:
+      spec:
+        servingCerts:
+          namedCertificates:
+            - names:
+                - "api.{{ ocp4_deployment_cluster_name }}.{{ ocp4_deployment_cluster_basedomain }}"
+              servingCertificate:
+                name: api-certificate
+
+# - name: Backup kubeconfig file
+#   command: cp -v {{ install_path }}/auth/kubeconfig {{ install_path }}/auth/kubeconfig_BCK
+
+# - name: Oc config set clusters 
+#   command: ./oc config set clusters.{{ ocp4_deployment_cluster_name }}.certificate-authority-data {{ trust_bundle | b64encode }}
+#   environment:
+#     KUBECONFIG: "{{ install_path }}/auth/kubeconfig"
+
+# - name: Fetch kubeconfig file
+#   check_mode: false
+#   fetch:
+#     src: "{{ install_path }}/auth/kubeconfig"
+#     dest: ./kubeconfig
+#     flat: true
+
+# - pause:
+#     prompt: "Wait a few minutes for APIServer conf to be propagated"
+#     minutes: 10
+
+# code: language=ansible

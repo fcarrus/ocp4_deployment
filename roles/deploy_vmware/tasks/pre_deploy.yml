@@ -1,0 +1,77 @@
+- name: Create vmware cluster folder
+  delegate_to: localhost
+  run_once: true
+  community.vmware.vcenter_folder:
+    datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
+    folder_name: "{{ ocp4_deployment_vmware_vcenter_create_subfolder }}"
+    hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
+    username: "{{ ocp4_deployment_vmware_vcenter_username }}"
+    password: "{{ ocp4_deployment_vmware_vcenter_password }}"
+    validate_certs: false
+    folder_type: vm
+    parent_folder: "{{ ocp4_deployment_vmware_vcenter_folder }}"
+    state: present
+  when: ocp4_deployment_vmware_vcenter_create_subfolder is defined
+
+- name: Check for OVA template
+  delegate_to: localhost
+  run_once: true
+  community.vmware.vmware_guest_info:
+    username: "{{ ocp4_deployment_vmware_vcenter_username }}"
+    password: "{{ ocp4_deployment_vmware_vcenter_password }}"
+    hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
+    datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
+    name: "RHCOS-{{ ocp4_deployment_cluster_rhcos_version }}-Template"
+    folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}"
+    validate_certs: false
+  register: template_info
+  failed_when: false
+
+- name: Check for image on filesystem
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.stat:
+    path: "{{ ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
+    get_checksum: false
+  register: template_file
+
+- name: Download latest RHCOS image
+  delegate_to: localhost
+  run_once: true
+  when:
+    - not template_file.stat.exists
+    - '"instance" not in template_info'
+  ansible.builtin.get_url:
+    dest: "{{ ocp4_deployment_install_path }}/"
+    url: "{{ ocp4_deployment_rhcos_download_mirror }}/{{ ocp4_deployment_cluster_rhcos_version }}/latest/rhcos-vmware.x86_64.ova"
+    checksum: "sha256:{{ ocp4_deployment_rhcos_download_mirror }}/{{ ocp4_deployment_cluster_rhcos_version }}/latest/sha256sum.txt"
+  environment: "{{ ocp4_deployment_proxy_env_variables | d({}) }}"
+
+- name: Upload OVA file
+  delegate_to: localhost
+  run_once: true
+  community.vmware.vmware_deploy_ovf:
+    username: "{{ ocp4_deployment_vmware_vcenter_username }}"
+    password: "{{ ocp4_deployment_vmware_vcenter_password }}"
+    hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
+    name: "RHCOS-{{ ocp4_deployment_cluster_rhcos_version }}-Template"
+    cluster: "{{ ocp4_deployment_vmware_cluster }}"
+    datastore: "{{ ocp4_deployment_vmware_datastore }}"
+    datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
+    validate_certs: false
+    power_on: false
+    networks: "{u'VM Network':u'{{ ocp4_deployment_vmware_network }}'}"
+    ovf: "{{ ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
+    folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}"
+    allow_duplicates: false
+  when: |
+    "instance" not in template_info
+
+- name: Remove Local OVA Image
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.file:
+    path: "{{ ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
+    state: absent
+
+# code: language=ansible

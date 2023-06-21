@@ -1,0 +1,11 @@
+- name: Check Variables
+  ansible.builtin.import_playbook: fcarrus.ocp4_deployment.check
+
+- name: Prepare Installation
+  ansible.builtin.import_playbook: fcarrus.ocp4_deployment.prepare
+
+- name: Deploy VMs
+  ansible.builtin.import_playbook: fcarrus.ocp4_deployment.deploy
+
+- name: Configure Cluster
+  ansible.builtin.import_playbook: fcarrus.ocp4_deployment.configure

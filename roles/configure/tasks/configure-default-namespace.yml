@@ -1,0 +1,33 @@
+- name: Configure Default Namespace Template
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: Template
+    name: project-request
+    namespace: openshift-config
+    definition: "{{ lookup('file', 'project-request.yml') | from_yaml }}"
+
+- name: Configure Default Namespace Template
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    api_version: config.openshift.io/v1
+    kind: Project
+    name: cluster
+    definition:
+      spec:
+        projectRequestTemplate:
+          name: project-request
+
+- name: Configure default namespace with Network Policygroup
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: Namespace
+    name: default
+    definition:
+      metadata:
+        labels:
+          'network.openshift.io/policy-group': 'ingress'
+
+# code: language=ansible

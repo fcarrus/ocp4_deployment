@@ -1,0 +1,16 @@
+- name: Taint nodes
+  delegate_to: localhost
+  when:
+    - ocp4_deployment_cluster_nodes_taints is defined
+    - ocp4_deployment_cluster_nodes_taints is iterable
+    - ocp4_deployment_cluster_nodes_taints is not string
+    - ocp4_deployment_cluster_nodes_taints is not mapping
+    - ocp4_deployment_cluster_nodes_taints | length > 0
+  kubernetes.core.k8s:
+    kind: Node
+    name: "{{ inventory_hostname }}"
+    definition:
+      spec:
+        taints: "{{ ocp4_deployment_cluster_nodes_taints }}"
+
+# code: language=ansible

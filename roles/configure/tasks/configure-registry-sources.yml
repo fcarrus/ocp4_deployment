@@ -1,0 +1,14 @@
+- name: Configure Registry Sources
+  delegate_to: localhost
+  run_once: true
+  when: |
+    ocp4_deployment_cluster_registry_sources_allowed is defined
+      or
+    ocp4_deployment_cluster_registry_sources_insecure is defined
+  kubernetes.core.k8s:
+    api_version: config.openshift.io/v1
+    name: cluster
+    kind: Image
+    definition: "{{ lookup('template', 'registry-sources.j2') }}"
+
+# code: language=ansible

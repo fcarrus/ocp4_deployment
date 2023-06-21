@@ -1,0 +1,12 @@
+- name: Poweroff and Delete Bootstrap Machine
+  delegate_to: localhost
+  when: inventory_hostname in groups.bootstrap
+  community.vmware.vmware_guest:
+    hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
+    username: "{{ ocp4_deployment_vmware_vcenter_username }}"
+    password: "{{ ocp4_deployment_vmware_vcenter_password }}"
+    name: "{{ inventory_hostname }}"
+    state: absent
+    force: true
+    delete_from_inventory: true
+    validate_certs: false

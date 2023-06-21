@@ -1,0 +1,198 @@
+# - name: Install Operator
+#   vars:
+#     _ocp4_deployment_operator_name: odf-operator
+#     _ocp4_deployment_operator_namespace: openshift-storage
+#   ansible.builtin.include_tasks:
+#     file: install-operator.yml
+#   #   apply:
+#   #     tags:
+#   #       - wait-nodes
+#   # tags:
+#   #   - wait-nodes
+
+# - fail:
+
+- name: Wait for nodes to be Ready
+  ansible.builtin.include_tasks:
+    file: wait-nodes.yml
+    apply:
+      tags:
+        - wait-nodes
+  tags:
+    - wait-nodes
+
+- name: Create additional manifests
+  ansible.builtin.include_tasks:
+    file: create-additional-manifests.yml
+    apply:
+      tags:
+        - manifests
+  tags:
+    - manifests
+
+- name: Label nodes
+  ansible.builtin.include_tasks:
+    file: configure-node-labels.yml
+    apply:
+      tags:
+        - node-labels
+  tags:
+    - node-labels
+
+- name: Configure ODF Storage Stack
+  when: ocp4_deployment_cluster_odf_install | bool
+  ansible.builtin.include_tasks:
+    file: configure-odf.yml
+    apply:
+      tags:
+        - odf
+  tags:
+    - odf
+
+- name: Configure Ingress Controller
+  ansible.builtin.include_tasks:
+    file: configure-ingress-controller.yml
+    apply:
+      tags:
+        - ingress
+  tags:
+    - ingress
+
+- name: Configure Trusted CA Bundle
+  ansible.builtin.include_tasks:
+    file: configure-proxy.yml
+    apply:
+      tags:
+        - proxy
+  tags:
+    - proxy
+
+- name: Configure Trusted CA Bundle
+  ansible.builtin.include_tasks:
+    file: configure-trusted-ca.yml
+    apply:
+      tags:
+        - ca-bundle
+  tags:
+    - ca-bundle
+
+- name: Wait for Cluster Operators to Settle
+  ansible.builtin.include_tasks:
+    file: wait-cluster-operators.yml
+    apply:
+      tags:
+        - ingress
+        - ca-bundle
+        - proxy
+  tags:
+    - always
+
+- name: Configure Identity Provider(s)
+  ansible.builtin.include_tasks:
+    file: configure-identity-providers.yml
+    apply:
+      tags:
+        - idp
+  tags:
+    - idp
+
+- name: Disable Self Provisioning Permission
+  ansible.builtin.include_tasks:
+    file: disable-self-provisioners.yml
+    apply:
+      tags:
+        - selfprov
+  tags:
+    - selfprov
+
+- name: Configure Monitoring Stack
+  when: ocp4_deployment_cluster_monitoring | bool
+  ansible.builtin.include_tasks:
+    file: configure-monitoring.yml
+    apply:
+      tags:
+        - monitoring
+  tags:
+    - monitoring
+
+- name: Configure Logging Stack
+  when: ocp4_deployment_cluster_logging | bool
+  ansible.builtin.include_tasks:
+    file: configure-logging.yml
+    apply:
+      tags:
+        - logging
+  tags:
+    - logging
+
+- name: Configure Default Namespace Template
+  ansible.builtin.include_tasks:
+    file: configure-default-namespace.yml
+    apply:
+      tags:
+        - defns
+  tags:
+    - defns
+
+- name: Configure Image Registry
+  ansible.builtin.include_tasks:
+    file: configure-image-registry.yml
+    apply:
+      tags:
+        - image-registry
+  tags:
+    - image-registry
+
+- name: Configure Additional Registry Sources
+  ansible.builtin.include_tasks:
+    file: configure-registry-sources.yml
+    apply:
+      tags:
+        - registry-sources
+  tags:
+    - registry-sources
+
+# # - name: Manage Container Catalog Mirror
+# #   ansible.builtin.include_tasks: remove-mirror.yml
+
+- name: Configure Custom Certificate for API Endpoint
+  when: ocp4_deployment_cluster_api_certificate_replace | bool
+  ansible.builtin.include_tasks:
+    file: configure-api-certificate.yml
+    apply:
+      tags:
+        - api-certificate
+  tags:
+    - api-certificate
+
+- name: Taint Nodes
+  ansible.builtin.include_tasks:
+    file: configure-node-taints.yml
+    apply:
+      tags:
+        - node-taints
+  tags:
+    - node-taints
+
+- name: Wait for Cluster Operators to Settle
+  ansible.builtin.include_tasks:
+    file: wait-cluster-operators.yml
+    apply:
+      tags:
+        - idp
+        - monitoring
+  tags:
+    - always
+
+- name: Configure RHACM
+  when: ocp4_deployment_configure_rhacm_hub | bool
+  ansible.builtin.include_tasks:
+    file: configure-rhacm.yml
+    apply:
+      tags:
+        - rhacm
+  tags:
+    - rhacm
+
+
+# code: language=ansible

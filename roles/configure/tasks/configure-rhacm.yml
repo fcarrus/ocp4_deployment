@@ -1,0 +1,66 @@
+- name: Install Advanced Cluster Management operator
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: List
+    definition: "{{ lookup('template', 'rhacm-operators.j2') }}"
+
+# - name: Wait for RHACM Operator to Complete Installation
+#   delegate_to: localhost
+#   run_once: true
+#   kubernetes.core.k8s_info:
+#     api_version: operators.coreos.com/v1alpha1
+#     name: advanced-cluster-management
+#     namespace: open-cluster-management
+#     kind: Subscription
+#   register: _ocp4_deployment_configure_rhacm_subscription_status
+#   retries: 120
+#   delay: 5
+#   until:
+#     - |
+#       _ocp4_deployment_configure_rhacm_subscription_status.resources |
+#       length > 0
+#     - |
+#       _ocp4_deployment_configure_rhacm_subscription_status.resources[0].status.currentCSV is defined
+#     - |
+#       _ocp4_deployment_configure_rhacm_subscription_status.resources[0].status.conditions |
+#       selectattr("type","equalto","InstallPlanPending") |
+#       length == 0
+#     - _ocp4_deployment_configure_rhacm_subscription_status.resources[0].status.state == "AtLatestKnown"
+
+- name: Retrieve RHACM Operator Information
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: advanced-cluster-management
+    namespace: open-cluster-management
+    kind: Subscription
+  register: _ocp4_deployment_operator_installation
+
+- name: Wait for RHACM InstallPlan to Complete
+  vars:
+    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_operator_installation.resources[0].status.installplan.name }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: "{{ _ocp4_deployment_operator_installplan }}"
+    namespace: open-cluster-management
+    kind: InstallPlan
+  register: _ocp4_deployment_installplan_completion
+  retries: 120
+  delay: 5
+  until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+
+- name: Configure Cluster HUB
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: MultiClusterHub
+    api_version: operator.open-cluster-management.io/v1
+    name: multiclusterhub
+    namespace: open-cluster-management
+    definition: "{{ lookup('template', 'rhacm-clusterhub.j2') }}"
+
+# code: language=ansible

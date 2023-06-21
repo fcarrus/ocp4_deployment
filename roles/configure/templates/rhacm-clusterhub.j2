@@ -1,0 +1,21 @@
+spec:
+  availabilityConfig: High
+{% if ocp4_deployment_configure_rhacm_overrides is defined %}
+  overrides:
+    components:
+{% filter indent(8, True) %}
+{{ ocp4_deployment_configure_rhacm_overrides | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+{% if groups.infra_nodes | length > 0 %}
+  tolerations:
+{% filter indent(4, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+  nodeSelector:
+{% filter indent(4, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+
+# code: language=ansible-jinja

@@ -1,0 +1,17 @@
+# Count how many nodes are ready until they match how many are being configured
+- name: Wait for Nodes to be ready
+  delegate_to: localhost
+  kubernetes.core.k8s_info:
+    kind: Node
+    name: "{{ inventory_hostname }}"
+  register: _ocp4_nodes_info
+  retries: "{{ 4 * ( ansible_play_hosts | length ) }}"
+  delay: 30
+  until: |
+    (_ocp4_nodes_info.resources | map(attribute="status.conditions") |
+      flatten |
+      selectattr("type","equalto","Ready") |
+      selectattr("status","equalto","True") | length
+    ) == 1
+
+# code: language=ansible

@@ -1,0 +1,9 @@
+data:
+  tls.crt: |
+{% filter indent(4, True) -%}
+{{ ocp4_deployment_cluster_wildcard_ssl_cert | string | b64encode }}
+{% endfilter %}
+  tls.key: |
+{% filter indent(4, True) -%}
+{{ ocp4_deployment_cluster_wildcard_ssl_key | string | b64encode }}
+{% endfilter %}

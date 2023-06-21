@@ -1,0 +1,72 @@
+- name: Install Cluster Logging operators
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: List
+    definition: "{{ lookup('template', 'logging-operators.j2') }}"
+
+- name: Retrieve ElasticSearch Operator Information
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: elasticsearch-operator
+    namespace: openshift-operators-redhat
+    kind: Subscription
+  register: _ocp4_deployment_configure_elasticsearch_subscription_status
+
+- name: Wait for ElasticSearch InstallPlan
+  vars:
+    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_configure_elasticsearch_subscription_status.resources[0].status.installplan.name }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: "{{ _ocp4_deployment_operator_installplan }}"
+    namespace: openshift-operators-redhat
+    kind: InstallPlan
+  register: _ocp4_deployment_installplan_completion
+  retries: 120
+  delay: 5
+  until:
+    - _ocp4_deployment_installplan_completion.resources | length == 1
+    - _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+
+- name: Retrieve Logging Operator Information
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: cluster-logging
+    namespace: openshift-logging
+    kind: Subscription
+  register: _ocp4_deployment_configure_logging_subscription_status
+
+- name: Wait for Logging InstallPlan
+  vars:
+    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_configure_logging_subscription_status.resources[0].status.installplan.name }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: "{{ _ocp4_deployment_operator_installplan }}"
+    namespace: openshift-logging
+    kind: InstallPlan
+  register: _ocp4_deployment_installplan_completion
+  retries: 120
+  delay: 5
+  until:
+    - _ocp4_deployment_installplan_completion.resources | length == 1
+    - _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+
+- name: Configure Logging
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: ClusterLogging
+    api_version: logging.openshift.io/v1
+    name: instance
+    namespace: openshift-logging
+    definition: "{{ lookup('template', 'logging-conf.j2') }}"
+
+# code: language=ansible

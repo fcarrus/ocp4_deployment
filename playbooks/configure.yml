@@ -1,0 +1,19 @@
+- name: Post-deploy configuration
+  hosts:
+    - master_nodes
+    - worker_nodes
+    - infra_nodes
+    - storage_nodes
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Configure Cluster
+      ansible.builtin.include_role:
+        name: fcarrus.ocp4_deployment.configure
+        apply:
+          environment:
+            K8S_AUTH_KUBECONFIG: "{{ ocp4_deployment_install_path }}/install/auth/kubeconfig"
+      tags:
+        - always
+
+# code: language=ansible

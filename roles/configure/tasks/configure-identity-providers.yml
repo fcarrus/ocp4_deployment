@@ -1,0 +1,29 @@
+# - name: Create bindpassword for authentication
+#   delegate_to: localhost
+#   run_once: true
+#   no_log: true
+#   kubernetes.core.k8s:
+#     kind: Secret
+#     namespace: openshift-config
+#     name: ad-secret
+#     definition:
+#       data:
+#         bindPassword: "{{ bindpassword | b64encode }}"
+
+- name: Create identity provider for authentication
+  delegate_to: localhost
+  when:
+    - ocp4_deployment_cluster_identity_providers is defined
+    - ocp4_deployment_cluster_identity_providers is iterable
+    - ocp4_deployment_cluster_identity_providers is not string
+    - ocp4_deployment_cluster_identity_providers is not mapping
+    - ocp4_deployment_cluster_identity_providers | length > 0
+  run_once: true
+  kubernetes.core.k8s:
+    kind: OAuth
+    name: cluster
+    definition:
+      spec:
+        identityProviders: "{{ ocp4_deployment_cluster_identity_providers }}"
+
+# code: language=ansible

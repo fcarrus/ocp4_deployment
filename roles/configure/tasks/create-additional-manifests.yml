@@ -1,0 +1,7 @@
+- name: Create additional objects
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s: "{{ item }}"
+  loop: "{{ ocp4_deployment_cluster_additional_manifests }}"
+
+# code: language=ansible

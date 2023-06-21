@@ -1,0 +1,37 @@
+- name: "Install Operator : {{ _ocp4_deployment_operator_name }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    definition:
+      kind: Subscription
+      apiVersion: operators.coreos.com/v1alpha1
+      metadata:
+        name: "{{ _ocp4_deployment_operator_name }}"
+        namespace: "{{ _ocp4_deployment_operator_namespace }}"
+
+- name: "Retrieve Operator Information for : {{ _ocp4_deployment_operator_name }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: "{{ _ocp4_deployment_operator_name }}"
+    namespace: "{{ _ocp4_deployment_operator_namespace }}"
+    kind: Subscription
+  register: _ocp4_deployment_operator_installation
+
+- name: "Wait for InstallPlan to Complete : {{ _ocp4_deployment_operator_name }}"
+  vars:
+    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_operator_installation.resources[0].status.installplan.name }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: "{{ _ocp4_deployment_operator_installplan }}"
+    namespace: "{{ _ocp4_deployment_operator_namespace }}"
+    kind: InstallPlan
+  register: _ocp4_deployment_installplan_completion
+  retries: 120
+  delay: 5
+  until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+
+# code: language=ansible

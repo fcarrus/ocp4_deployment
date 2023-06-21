@@ -1,0 +1,12 @@
+- name: Label nodes
+  delegate_to: localhost
+  when: |
+    ocp4_deployment_cluster_nodes_labels is defined and ocp4_deployment_cluster_nodes_labels is mapping
+  kubernetes.core.k8s:
+    kind: Node
+    name: "{{ inventory_hostname }}"
+    definition:
+      metadata:
+        labels: "{{ ocp4_deployment_cluster_nodes_labels }}"
+
+# code: language=ansible

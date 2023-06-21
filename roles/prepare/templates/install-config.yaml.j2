@@ -1,0 +1,69 @@
+apiVersion: v1
+baseDomain: {{ ocp4_deployment_cluster_basedomain }}
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+  replicas: 0
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  replicas: {{ ocp4_deployment_cluster_is_singlenode | ternary(1, 3) }}
+metadata:
+  creationTimestamp: null
+  name: {{ ocp4_deployment_cluster_name }}
+networking:
+  networkType: {{ ocp4_deployment_cluster_network_type }}
+  clusterNetwork:
+  {{ ocp4_deployment_cluster_pod_network | to_yaml }}
+  serviceNetwork:
+  {{ ocp4_deployment_cluster_service_network | to_nice_yaml }}
+{% if ocp4_deployment_cluster_machine_network is defined %}
+  machineNetwork:
+  {{ ocp4_deployment_cluster_machine_network | to_yaml }}
+{% endif %}
+{% if ocp4_deployment_cluster_configure_mirror -%}
+imageContentSources:
+- mirrors:
+  - {{ inventory_hostname }}:5000/ocp4/openshift4
+  source: quay.io/openshift-release-dev/ocp-release
+- mirrors:
+  - {{ inventory_hostname }}:5000/ocp4/openshift4
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+{% endif%}
+{% if ocp4_deployment_proxy_env_variables is defined -%}
+proxy:
+  httpProxy: "{{ ocp4_deployment_proxy_env_variables.http_proxy }}"
+  httpsProxy: "{{ ocp4_deployment_proxy_env_variables.https_proxy }}"
+  noProxy: "{{ ocp4_deployment_proxy_env_variables.no_proxy }}"
+{% endif %}
+{% if ocp4_deployment_cluster_trust_bundle is defined -%}
+additionalTrustBundle: |
+{% filter indent(2, True) -%}
+{{ ocp4_deployment_cluster_trust_bundle }}
+{% endfilter %}
+{% endif %}
+platform:
+{% if ocp4_deployment_is_agnostic %}
+  none: {}
+{% else %}
+{% if ocp4_deployment_platform_provider == "vmware" %}
+  vsphere:
+    cluster: "{{ ocp4_deployment_vmware_cluster }}"
+    datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
+    defaultDatastore: "{{ ocp4_deployment_vmware_datastore }}"
+    network: "{{ ocp4_deployment_vmware_network }}"
+    username: "{{ ocp4_deployment_vmware_vcenter_username }}"
+    password: "{{ ocp4_deployment_vmware_vcenter_password }}"
+    vcenter: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
+    folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm/{{ ocp4_deployment_vmware_vcenter_folder }}"
+    apiVIPs:
+      - {{ ocp4_deployment_cluster_api_vip }}
+    ingressVIPs:
+      - {{ ocp4_deployment_cluster_ingress_vip }}
+{% endif %}
+{% endif%}
+publish: External
+pullSecret: '{{ ocp4_deployment_cluster_pull_secret }}'
+sshKey: "{{ ocp4_deployment_cluster_coreos_ssh_pubkey }}"

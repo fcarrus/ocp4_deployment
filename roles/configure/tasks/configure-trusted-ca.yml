@@ -1,0 +1,24 @@
+- name: Create user-ca-bundle ConfigMap
+  delegate_to: localhost
+  run_once: true
+  when: ocp4_deployment_cluster_trust_bundle is defined
+  kubernetes.core.k8s:
+    kind: ConfigMap
+    name: user-ca-bundle
+    namespace: openshift-config
+    definition: "{{ lookup('template', 'user-ca-bundle-configmap.j2') }}"
+
+- name: Configure Trusted CA
+  delegate_to: localhost
+  run_once: true
+  when: ocp4_deployment_cluster_trust_bundle is defined
+  kubernetes.core.k8s:
+    kind: Proxy
+    api_version: config.openshift.io/v1
+    name: cluster
+    definition:
+      spec:
+        trustedCA:
+          name: user-ca-bundle
+
+# code: language=ansible

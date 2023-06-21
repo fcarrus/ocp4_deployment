@@ -1,0 +1,14 @@
+- name: Configure Proxy
+  delegate_to: localhost
+  run_once: true
+  when: ocp4_deployment_cluster_configure_proxy
+  kubernetes.core.k8s:
+    kind: Proxy
+    name: cluster
+    definition:
+      spec:
+        httpProxy: "{{ ocp4_deployment_proxy_env_variables.https_proxy }}"
+        httpsProxy: "{{ ocp4_deployment_proxy_env_variables.http_proxy }}"
+        noProxy: "{{ ocp4_deployment_proxy_env_variables.no_proxy }}"
+
+# code: language=ansible

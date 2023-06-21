@@ -1,0 +1,22 @@
+- name: Remove All OCP VMs
+  hosts:
+    - bootstrap
+    - master_nodes
+    - worker_nodes
+    - infra_nodes
+    - storage_nodes
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Wait for confirmation
+      ansible.builtin.pause:
+        seconds: "{{ ocp4_deployment_cleanup_pause_seconds }}"
+        prompt: "Are you sure you want to delete the OCP cluster VMs? You have {{ ocp4_deployment_cleanup_pause_seconds }} seconds to cancel."
+
+    - name: Delete vmware VMs
+      ansible.builtin.include_role:
+        name: fcarrus.ocp4_deployment.deploy_vmware
+        tasks_from: cleanup.yml
+      when: ocp4_deployment_platform_provider == 'vmware'
+
+# code: language=ansible

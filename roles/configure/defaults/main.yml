@@ -1,0 +1,72 @@
+ocp4_deployment_cluster_wildcard_certificate_replace: false
+
+ocp4_cluster_ingress_replicas: 1
+
+ocp4_deployment_cluster_api_certificate_replace: false
+
+ocp4_deployment_cluster_monitoring: true
+ocp4_deployment_cluster_monitoring_enable_userworkload: false
+ocp4_deployment_cluster_monitoring_prometheus_retention: 2w
+ocp4_deployment_cluster_monitoring_userworkload_prometheus_retention: 2w
+ocp4_deployment_cluster_monitoring_prometheus_volumeclaim_spec:
+  storageClassName: thin
+  resources:
+    requests:
+      storage: 40Gi
+ocp4_deployment_cluster_monitoring_alertmanager_volumeclaim_spec:
+  storageClassName: thin
+  resources:
+    requests:
+      storage: 40Gi
+ocp4_deployment_cluster_monitoring_userworkload_prometheus_volumeclaim_spec:
+  storageClassName: thin
+  resources:
+    requests:
+      storage: 40Gi
+
+ocp4_deployment_cluster_logging: false
+
+ocp4_deployment_cluster_odf_install: false
+ocp4_deployment_cluster_odf_use_localstorage: true
+
+ocp4_deployment_cluster_odf_dynprov_storageclass: thin
+ocp4_deployment_cluster_odf_dynprov_size: '0.5Ti'
+
+ocp4_deployment_cluster_logging_logstore_storage:
+  size: 100G
+  storageClassName: thin
+ocp4_deployment_cluster_logging_logstore_storage_retention:
+  application:
+    maxAge: 4d
+  infra:
+    maxAge: 4d
+  audit:
+    maxAge: 4d
+
+ocp4_deployment_cluster_registry_replicas: 1
+
+ocp4_deployment_cluster_registry_expose: false
+
+ocp4_deployment_cluster_rhacm_channel: "release-2.8"
+
+ocp4_deployment_configure_rhacm_hub: false
+
+ocp4_deployment_configure_rhacm_overrides:
+  - enabled: true
+    name: console
+  - enabled: true
+    name: insights
+  - enabled: true
+    name: grc
+  - enabled: true
+    name: cluster-lifecycle
+  - enabled: true
+    name: volsync
+  - enabled: true
+    name: multicluster-engine
+  - enabled: true
+    name: search
+  - enabled: true
+    name: app-lifecycle
+  - enabled: true
+    name: cluster-backup

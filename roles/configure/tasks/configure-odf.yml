@@ -1,0 +1,221 @@
+- name: Make List of Storage Nodes
+  run_once: true
+  ansible.builtin.set_fact:
+    _ocp4_deployment_configure_storage_node_list: "{{ _ocp4_deployment_configure_storage_node_list | d([]) + [ hostvars[item].inventory_hostname ] }}"
+  when: '"cluster.ocs.openshift.io/openshift-storage" in hostvars[item].ocp4_deployment_cluster_nodes_labels | d({})'
+  loop: "{{ ansible_play_hosts }}"
+
+- name: Install ODF Operator
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: List
+    definition: "{{ lookup('template', 'odf-operator.j2') }}"
+    wait: true
+
+- name: Retrieve ODF Operator Information
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: odf-operator
+    namespace: openshift-storage
+    kind: Subscription
+  register: _ocp4_deployment_configure_odf_subscription_status
+
+- name: Wait for ODF InstallPlan
+  vars:
+    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_configure_odf_subscription_status.resources[0].status.installplan.name }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: odf-operator
+    namespace: openshift-storage
+    kind: InstallPlan
+  register: _ocp4_deployment_installplan_completion
+  retries: 120
+  delay: 5
+  until:
+    - _ocp4_deployment_installplan_completion.resources | length == 1
+    - _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+
+- name: Enable ODF Console Plugin
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: Console
+    name: cluster
+    api_version: operator.openshift.io/v1
+    definition:
+      - op: add
+        path: '/spec'
+        value: 'odf-console'
+
+# # - name: Check operator installation status
+# #   local_action: k8s_info
+# #   args:
+# #     kubeconfig: ./kubeconfig
+# #     api_version: operators.coreos.com/v1alpha1
+# #     name: '{{ _ocp4_deployment_configure_odf_subscription_status.resources[0].status.currentCSV }}'
+# #     namespace: openshift-storage
+# #     kind: ClusterServiceVersion
+# #   register: storage_operator
+# #   retries: 120
+# #   delay: 5
+# #   until:
+# #   - 'storage_operator.resources | length > 0'
+# #   - 'storage_operator.resources[0].status.phase == "Succeeded"'
+
+# # - name: Set Cluster Storage subscription to manual approval
+# #   local_action: k8s
+# #   args:
+# #     kubeconfig: ./kubeconfig
+# #     api_version: operators.coreos.com/v1alpha1
+# #     name: ocs-operator
+# #     namespace: openshift-storage
+# #     kind: Subscription
+# #     definition:
+# #       spec:
+# #         installPlanApproval: Manual
+
+- name: Configure CSI Plugin Tolerations
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: ConfigMap
+    name: rook-ceph-operator-config
+    namespace: openshift-storage
+    definition: "{{ lookup('template', 'rook-ceph-operator-config.j2') }}"
+
+- name: If LocalStorage is being used
+  when: ocp4_deployment_cluster_odf_use_localstorage | bool
+  block:
+
+    - name: Install LocalStorage Operator
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s:
+        kind: List
+        definition: "{{ lookup('template', 'localstorage-operator.j2') }}"
+        wait: true
+
+    - name: Wait for LocalStorage Operator to Complete Installation
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s_info:
+        api_version: operators.coreos.com/v1alpha1
+        name: local-storage-operator
+        namespace: openshift-local-storage
+        kind: Subscription
+      register: _ocp4_deployment_configure_localstorage_subscription_status
+      retries: 120
+      delay: 5
+      until:
+        - |
+          _ocp4_deployment_configure_localstorage_subscription_status.resources | length > 0
+        - |
+          _ocp4_deployment_configure_localstorage_subscription_status.resources[0].status.currentCSV is defined
+        - |
+          _ocp4_deployment_configure_localstorage_subscription_status.resources[0].status.conditions |
+          selectattr("type","equalto","InstallPlanPending") |
+          length == 0
+
+    - name: Create LocalVolumeDiscovery
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s:
+        kind: LocalVolumeDiscovery
+        api_version: local.storage.openshift.io/v1alpha1
+        name: auto-discover-devices
+        namespace: openshift-local-storage
+        definition:
+          spec:
+            nodeSelector:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: cluster.ocs.openshift.io/openshift-storage
+                      operator: Exists
+
+    - name: Wait for Local Volume Discovery to Complete
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s_info:
+        kind: LocalVolumeDiscoveryResult
+        api_version: local.storage.openshift.io/v1alpha1
+        namespace: openshift-local-storage
+      register: _ocp4_deployment_configure_localvolumediscovery_info
+      retries: 30
+      delay: 5
+      until: |
+        _ocp4_deployment_configure_storage_node_list |
+        difference(
+          _ocp4_deployment_configure_localvolumediscovery_info.resources |
+          map(attribute='spec.nodeName')
+        ) | length == 0
+
+    - name: Create LocalVolumeSet
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s:
+        api_version: local.storage.openshift.io/v1alpha1
+        kind: LocalVolumeSet
+        name: localblock-odf-1
+        namespace: openshift-local-storage
+        definition:
+          spec:
+            nodeSelector:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: cluster.ocs.openshift.io/openshift-storage
+                      operator: Exists
+            storageClassName: localblock-odf
+            volumeMode: Block
+            deviceInclusionSpec:
+              deviceTypes: # list of types to allow
+                - disk
+                # - part # omit this to use only whole devices
+              # deviceMechanicalProperty:
+              #   - NonRotational
+              minSize: 100Gi # optional, minimum size of device to allow
+              maxSize: 100Ti # optional, maximum size of device to allow
+              # models: # (optional) list of models to allow
+              #   - SAMSUNG
+              #   - Crucial_CT525MX3
+              # vendors: # (optional) list of device vendors to allow
+              #   - ATA
+              #   - ST2000LM
+            # maxDeviceCount: 10 # optional, limit devices provisioned per node
+
+    - name: Create Storage Cluster with Local Storage
+      delegate_to: localhost
+      run_once: true
+      when: ocp4_deployment_cluster_odf_use_localstorage | bool
+      kubernetes.core.k8s:
+        kind: List
+        namespace: openshift-storage
+        definition: "{{ lookup('template', 'storagecluster-localstorage.j2') }}"
+
+- name: Create Storage Cluster with Dynamic Provisioning
+  delegate_to: localhost
+  run_once: true
+  when: not ocp4_deployment_cluster_odf_use_localstorage | bool
+  kubernetes.core.k8s:
+    kind: List
+    namespace: openshift-storage
+    definition: "{{ lookup('template', 'storagecluster-dynprov.j2') }}"
+
+- name: Wait for StorageCluster to Complete
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    kind: StorageCluster
+    api_version: ocs.openshift.io/v1
+    name: ocs-storagecluster
+    namespace: openshift-storage
+  register: _ocp4_deployment_configure_storagecluster_info
+  retries: 30
+  delay: 60
+  until: _ocp4_deployment_configure_storagecluster_info.resources[0].status.phase | d('') == "Ready"
+
+# code: language=ansible

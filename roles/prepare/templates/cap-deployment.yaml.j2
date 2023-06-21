@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: csr-auto-approver
+  name: csr-auto-approver
+  labels:
+    app: csr-auto-approver
+spec:
+  selector:
+    matchLabels:
+      app: csr-auto-approver
+  replicas: 1
+  template:
+    metadata:
+      name: csr-auto-approver
+      labels:
+        app: csr-auto-approver
+    spec:
+      serviceAccountName: cap-service-account
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+      containers:
+        - name: auto-approver
+          image: {{ ocp4_cluster_openshift_client_image }}
+          command:
+            - /data/approver.sh
+          volumeMounts:
+            - name: data
+              mountPath: /data/nodes
+              subPath: nodes
+            - name: data
+              mountPath: /data/approver.sh
+              subPath: approver.sh
+      volumes:
+        - name: data
+          configMap:
+            name: csr-auto-approver-config
+            defaultMode: 0755

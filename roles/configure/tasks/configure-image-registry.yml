@@ -1,0 +1,16 @@
+- name: Create Image Registry PVC
+  delegate_to: localhost
+  run_once: true
+  when: ocp4_deployment_cluster_registry_storage_config is defined
+  kubernetes.core.k8s:
+    kind: PersistentVolumeClaim
+    namespace: openshift-image-registry
+    definition: "{{ ocp4_deployment_cluster_registry_storage_config }}"
+
+- name: Configure Image Registry
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    definition: "{{ lookup('template', 'image-registry.j2') }}"
+
+# code: language=ansible

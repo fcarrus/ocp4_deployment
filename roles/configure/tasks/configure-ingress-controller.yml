@@ -1,0 +1,21 @@
+- name: Create wildcard certificate secret
+  delegate_to: localhost
+  when: ocp4_deployment_cluster_wildcard_certificate_replace
+  run_once: true
+  kubernetes.core.k8s:
+    kind: Secret
+    namespace: openshift-ingress
+    name: custom-ingress-certificate
+    definition: "{{ lookup('template', 'custom-ingress-certificate.j2') }}"
+  # no_log: true
+
+- name: Configure Ingress Controller
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: IngressController
+    name: default
+    namespace: openshift-ingress-operator
+    definition: "{{ lookup('template', 'ingress-controller-default.j2') }}"
+
+# code: language=ansible

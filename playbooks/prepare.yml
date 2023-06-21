@@ -1,0 +1,10 @@
+- name: Configure Bastion Environment
+  hosts: bastion
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Configure Bastion Environment
+      ansible.builtin.include_role:
+        name: fcarrus.ocp4_deployment.prepare
+
+# code: language=ansible

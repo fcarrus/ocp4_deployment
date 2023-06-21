@@ -1,0 +1,25 @@
+spec:
+{% if ocp4_deployment_cluster_wildcard_certificate_replace %}
+  defaultCertificate:
+    name: custom-ingress-certificate
+{% endif %}
+{% if ocp4_deployment_cluster_ingress_logging_config is defined and ocp4_deployment_cluster_ingress_logging_config is mapping %}
+  logging:
+{% filter indent(4, True) -%}
+{{ ocp4_deployment_cluster_ingress_logging_config | to_yaml }}
+{% endfilter %}
+{% endif %}
+
+{% if groups.infra_nodes | length > 0 %}
+  tolerations:
+{% filter indent(4, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+  nodeSelector:
+{% filter indent(4, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+  replicas: {{ groups.infra_nodes | length }}
+{% else %}
+  replicas: {{ ocp4_cluster_ingress_replicas }}
+{% endif %}

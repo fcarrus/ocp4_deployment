@@ -1,0 +1,49 @@
+items:
+
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: openshift-operators-redhat
+    annotations:
+      openshift.io/node-selector: ""
+    labels:
+      openshift.io/cluster-monitoring: "true"
+
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: openshift-storage
+    annotations:
+      openshift.io/node-selector: ""
+    labels:
+      openshift.io/cluster-monitoring: "true"
+
+- apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: openshift-operators-redhat
+    namespace: openshift-operators-redhat
+  spec: {}
+
+- apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: openshift-storage
+    namespace: openshift-storage
+  spec:
+    targetNamespaces:
+    - openshift-storage
+
+- apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: odf-operator
+    namespace: openshift-storage
+  spec:
+    channel: "stable-{{ ocp4_deployment_cluster_odf_version }}"
+    name: odf-operator
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: "Automatic"
+
+# code: language=yaml

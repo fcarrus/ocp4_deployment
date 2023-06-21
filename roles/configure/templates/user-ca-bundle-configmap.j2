@@ -1,0 +1,5 @@
+data:
+  ca-bundle.crt: |
+{% filter indent(4, True) -%}
+{{ ocp4_deployment_cluster_trust_bundle }}
+{% endfilter %}
