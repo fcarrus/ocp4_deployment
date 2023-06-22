@@ -30,7 +30,7 @@
   run_once: true
   kubernetes.core.k8s_info:
     api_version: operators.coreos.com/v1alpha1
-    name: odf-operator
+    name: "{{ _ocp4_deployment_operator_installplan }}"
     namespace: openshift-storage
     kind: InstallPlan
   register: _ocp4_deployment_installplan_completion
@@ -40,6 +40,16 @@
     - _ocp4_deployment_installplan_completion.resources | length == 1
     - _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
 
+# Workaround
+- name: Retrive list of Console Plugins
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    kind: Console
+    name: cluster
+    api_version: operator.openshift.io/v1
+  register: _ocp4_deployment_cluster_console_info
+
 - name: Enable ODF Console Plugin
   delegate_to: localhost
   run_once: true
@@ -48,36 +58,8 @@
     name: cluster
     api_version: operator.openshift.io/v1
     definition:
-      - op: add
-        path: '/spec'
-        value: 'odf-console'
-
-# # - name: Check operator installation status
-# #   local_action: k8s_info
-# #   args:
-# #     kubeconfig: ./kubeconfig
-# #     api_version: operators.coreos.com/v1alpha1
-# #     name: '{{ _ocp4_deployment_configure_odf_subscription_status.resources[0].status.currentCSV }}'
-# #     namespace: openshift-storage
-# #     kind: ClusterServiceVersion
-# #   register: storage_operator
-# #   retries: 120
-# #   delay: 5
-# #   until:
-# #   - 'storage_operator.resources | length > 0'
-# #   - 'storage_operator.resources[0].status.phase == "Succeeded"'
-
-# # - name: Set Cluster Storage subscription to manual approval
-# #   local_action: k8s
-# #   args:
-# #     kubeconfig: ./kubeconfig
-# #     api_version: operators.coreos.com/v1alpha1
-# #     name: ocs-operator
-# #     namespace: openshift-storage
-# #     kind: Subscription
-# #     definition:
-# #       spec:
-# #         installPlanApproval: Manual
+      spec:
+        plugins: "{{ (_ocp4_deployment_cluster_console_info.resources[0].spec.plugins | d([]) + ['odf-console']) | unique }}"
 
 - name: Configure CSI Plugin Tolerations
   delegate_to: localhost
@@ -134,8 +116,9 @@
             nodeSelector:
               nodeSelectorTerms:
                 - matchExpressions:
-                    - key: cluster.ocs.openshift.io/openshift-storage
-                      operator: Exists
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values: "{{ _ocp4_deployment_configure_storage_node_list }}"
 
     - name: Wait for Local Volume Discovery to Complete
       delegate_to: localhost
