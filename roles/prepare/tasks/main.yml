@@ -6,7 +6,7 @@
     - "{{ ocp4_deployment_install_path }}/install"
 
 - name: Include mirror configuration
-  when: ocp4_deployment_cluster_configure_mirror
+  when: ocp4_deployment_cluster_configure_mirror | bool
   ansible.builtin.include_tasks: _configure_mirror.yaml
 
 - name: Detect install-config.yaml file
