@@ -1,15 +1,3 @@
-# - name: Create bindpassword for authentication
-#   delegate_to: localhost
-#   run_once: true
-#   no_log: true
-#   kubernetes.core.k8s:
-#     kind: Secret
-#     namespace: openshift-config
-#     name: ad-secret
-#     definition:
-#       data:
-#         bindPassword: "{{ bindpassword | b64encode }}"
-
 - name: Create identity provider for authentication
   delegate_to: localhost
   when:
@@ -25,5 +13,55 @@
     definition:
       spec:
         identityProviders: "{{ ocp4_deployment_cluster_identity_providers }}"
+
+- name: Install GroupSync Operator
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: List
+    definition: "{{ lookup('template', 'groupsync-operator.j2') }}"
+
+- name: Retrieve GroupSync Operator Information
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: group-sync-operator
+    namespace: group-sync-operator
+    kind: Subscription
+  register: _ocp4_deployment_operator_installation
+
+- name: Wait for GroupSync InstallPlan to Complete
+  vars:
+    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_operator_installation.resources[0].status.installplan.name }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    name: "{{ _ocp4_deployment_operator_installplan }}"
+    namespace: group-sync-operator
+    kind: InstallPlan
+  register: _ocp4_deployment_installplan_completion
+  retries: 120
+  delay: 5
+  until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+
+- name: Create GroupSync object
+  delegate_to: localhost
+  run_once: true
+  when:
+    - ocp4_deployment_cluster_groupsync_providers is iterable
+    - ocp4_deployment_cluster_groupsync_providers is not string
+    - ocp4_deployment_cluster_groupsync_providers is not mapping
+    - ocp4_deployment_cluster_groupsync_providers | length > 0
+  kubernetes.core.k8s:
+    api_version: redhatcop.redhat.io/v1alpha1
+    kind: GroupSync
+    name: ldap-groupsync
+    namespace: group-sync-operator
+    definition:
+      spec:
+        schedule: "{{ ocp4_deployment_cluster_groupsync_schedule }}"
+        providers: "{{ ocp4_deployment_cluster_groupsync_providers }}"
 
 # code: language=ansible

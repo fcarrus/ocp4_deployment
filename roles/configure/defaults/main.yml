@@ -70,3 +70,7 @@ ocp4_deployment_configure_rhacm_overrides:
     name: app-lifecycle
   - enabled: true
     name: cluster-backup
+
+ocp4_deployment_cluster_groupsync_channel: alpha
+ocp4_deployment_cluster_groupsync_providers: []
+ocp4_deployment_cluster_groupsync_schedule: "0 3 * * *"
