@@ -1,0 +1,17 @@
+- name: Remove install Directory
+  hosts: bastion
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Wait for confirmation
+      ansible.builtin.pause:
+        seconds: "{{ ocp4_deployment_cleanup_pause_seconds }}"
+        prompt: "Are you sure you want to delete the install directory? You have {{ ocp4_deployment_cleanup_pause_seconds }} seconds to cancel."
+
+    - name: Delete install directory and its contents
+      ansible.builtin.file:
+        path: "{{ ocp4_deployment_install_path }}/install"
+        state: absent
+        force: true
+
+# code: language=ansible
