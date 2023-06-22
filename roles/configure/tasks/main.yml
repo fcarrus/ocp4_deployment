@@ -1,17 +1,3 @@
-# - name: Install Operator
-#   vars:
-#     _ocp4_deployment_operator_name: odf-operator
-#     _ocp4_deployment_operator_namespace: openshift-storage
-#   ansible.builtin.include_tasks:
-#     file: install-operator.yml
-#   #   apply:
-#   #     tags:
-#   #       - wait-nodes
-#   # tags:
-#   #   - wait-nodes
-
-# - fail:
-
 - name: Wait for nodes to be Ready
   ansible.builtin.include_tasks:
     file: wait-nodes.yml
@@ -58,7 +44,7 @@
   tags:
     - ingress
 
-- name: Configure Trusted CA Bundle
+- name: Configure Proxy
   ansible.builtin.include_tasks:
     file: configure-proxy.yml
     apply:
@@ -87,7 +73,7 @@
   tags:
     - always
 
-- name: Configure Identity Provider(s)
+- name: Configure Identity Provider(s) and GroupSync
   ansible.builtin.include_tasks:
     file: configure-identity-providers.yml
     apply:
@@ -184,7 +170,7 @@
   tags:
     - always
 
-- name: Configure RHACM
+- name: Configure RHACM Cluster Hub
   when: ocp4_deployment_configure_rhacm_hub | bool
   ansible.builtin.include_tasks:
     file: configure-rhacm.yml
