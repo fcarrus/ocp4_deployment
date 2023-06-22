@@ -11,12 +11,14 @@ spec:
 {% endif %}
 
 {% if groups.infra_nodes | length > 0 %}
-  tolerations:
-{% filter indent(4, True) -%}
+  nodePlacement:
+    tolerations:
+{% filter indent(6, True) -%}
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
 {% endfilter %}
-  nodeSelector:
-{% filter indent(4, True) -%}
+    nodeSelector:
+      matchLabels:
+{% filter indent(8, True) -%}
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
 {% endfilter %}
   replicas: {{ groups.infra_nodes | length }}
