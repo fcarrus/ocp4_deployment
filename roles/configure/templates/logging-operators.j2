@@ -31,7 +31,7 @@ items:
     name: "elasticsearch-operator"
     namespace: "openshift-operators-redhat"
   spec:
-    channel: "{{ ocp4_deployment_cluster_logging_channel }}"
+    channel: "{{ ocp4_deployment_cluster_logging_version }}"
     installPlanApproval: "Automatic"
     source: "redhat-operators"
     sourceNamespace: "openshift-marketplace"
@@ -52,7 +52,7 @@ items:
     name: cluster-logging
     namespace: openshift-logging
   spec:
-    channel: "{{ ocp4_deployment_cluster_logging_channel }}"
+    channel: "{{ ocp4_deployment_cluster_logging_version }}"
     name: cluster-logging
     source: redhat-operators
     sourceNamespace: openshift-marketplace
