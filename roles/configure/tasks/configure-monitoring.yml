@@ -10,6 +10,7 @@
 - name: Configure user workload monitoring
   delegate_to: localhost
   run_once: true
+  when: ocp4_deployment_cluster_monitoring_enable_userworkload | bool
   kubernetes.core.k8s:
     kind: ConfigMap
     name: user-workload-monitoring-config
