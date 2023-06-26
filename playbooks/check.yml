@@ -218,7 +218,7 @@
     #       - allowed_registries is defined
     #     fail_msg: "The registries variable not defined or is empty."
 
-    - name: Check storage_cluster_size
+    - name: Check vars - storage_cluster_size
       when:
         - ocp4_deployment_cluster_odf_install | bool
         - not ocp4_deployment_cluster_odf_use_localstorage | bool
