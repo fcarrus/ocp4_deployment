@@ -10,8 +10,8 @@
   kubernetes.core.k8s_info:
     kind: ClusterOperator
   register: _ocp4_cluster_operators_info
-  retries: "{{ 4 * ( ansible_play_hosts | length ) }}"
-  delay: 60
+  retries: "{{ 20 * ( ansible_play_hosts | length ) }}"
+  delay: 15
   until: |
     _ocp4_cluster_operators_info.resources |
     map(attribute="status.conditions") |
