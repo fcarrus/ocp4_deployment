@@ -1,11 +1,34 @@
-- name: Install Advanced Cluster Management operator
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s:
-    kind: List
-    definition: "{{ lookup('template', 'rhacm-operators.j2') }}"
+# - name: Install Advanced Cluster Management operator
+#   delegate_to: localhost
+#   run_once: true
+#   kubernetes.core.k8s:
+#     kind: List
+#     definition: "{{ lookup('template', 'rhacm-operators.j2') }}"
 
-# - name: Wait for RHACM Operator to Complete Installation
+# # - name: Wait for RHACM Operator to Complete Installation
+# #   delegate_to: localhost
+# #   run_once: true
+# #   kubernetes.core.k8s_info:
+# #     api_version: operators.coreos.com/v1alpha1
+# #     name: advanced-cluster-management
+# #     namespace: open-cluster-management
+# #     kind: Subscription
+# #   register: _ocp4_deployment_configure_rhacm_subscription_status
+# #   retries: 120
+# #   delay: 5
+# #   until:
+# #     - |
+# #       _ocp4_deployment_configure_rhacm_subscription_status.resources |
+# #       length > 0
+# #     - |
+# #       _ocp4_deployment_configure_rhacm_subscription_status.resources[0].status.currentCSV is defined
+# #     - |
+# #       _ocp4_deployment_configure_rhacm_subscription_status.resources[0].status.conditions |
+# #       selectattr("type","equalto","InstallPlanPending") |
+# #       length == 0
+# #     - _ocp4_deployment_configure_rhacm_subscription_status.resources[0].status.state == "AtLatestKnown"
+
+# - name: Retrieve RHACM Operator InstallPlan
 #   delegate_to: localhost
 #   run_once: true
 #   kubernetes.core.k8s_info:
@@ -13,45 +36,36 @@
 #     name: advanced-cluster-management
 #     namespace: open-cluster-management
 #     kind: Subscription
-#   register: _ocp4_deployment_configure_rhacm_subscription_status
+#   register: _ocp4_deployment_configure_rhacm_operator_status
 #   retries: 120
 #   delay: 5
-#   until:
-#     - |
-#       _ocp4_deployment_configure_rhacm_subscription_status.resources |
-#       length > 0
-#     - |
-#       _ocp4_deployment_configure_rhacm_subscription_status.resources[0].status.currentCSV is defined
-#     - |
-#       _ocp4_deployment_configure_rhacm_subscription_status.resources[0].status.conditions |
-#       selectattr("type","equalto","InstallPlanPending") |
-#       length == 0
-#     - _ocp4_deployment_configure_rhacm_subscription_status.resources[0].status.state == "AtLatestKnown"
+#   until: _ocp4_deployment_configure_rhacm_operator_status.resources[0].status.installplan.name is defined
 
-- name: Retrieve RHACM Operator Information
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s_info:
-    api_version: operators.coreos.com/v1alpha1
-    name: advanced-cluster-management
-    namespace: open-cluster-management
-    kind: Subscription
-  register: _ocp4_deployment_operator_installation
+# - name: Wait for RHACM InstallPlan to Complete to Complete
+#   vars:
+#     _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_configure_rhacm_operator_status.resources[0].status.installplan.name }}"
+#   delegate_to: localhost
+#   run_once: true
+#   kubernetes.core.k8s_info:
+#     api_version: operators.coreos.com/v1alpha1
+#     name: "{{ _ocp4_deployment_operator_installplan }}"
+#     namespace: open-cluster-management
+#     kind: InstallPlan
+#   register: _ocp4_deployment_installplan_completion
+#   retries: 120
+#   delay: 5
+#   until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
 
-- name: Wait for RHACM InstallPlan to Complete
-  vars:
-    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_operator_installation.resources[0].status.installplan.name }}"
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s_info:
-    api_version: operators.coreos.com/v1alpha1
-    name: "{{ _ocp4_deployment_operator_installplan }}"
-    namespace: open-cluster-management
-    kind: InstallPlan
-  register: _ocp4_deployment_installplan_completion
-  retries: 120
-  delay: 5
-  until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+- name: Install RHACM Operator
+  ansible.builtin.include_tasks:
+    file: install-operator.yml
+    apply:
+      vars:
+        _ocp4_deployment_operator_name: advanced-cluster-management
+        _ocp4_deployment_operator_namespace: open-cluster-management
+        _ocp4_deployment_operator_channel: "{{ ocp4_deployment_cluster_rhacm_channel }}"
+        _ocp4_deployment_operator_source: redhat-operators
+        _ocp4_deployment_operator_sourcenamespace: openshift-marketplace
 
 - name: Configure Cluster HUB
   delegate_to: localhost

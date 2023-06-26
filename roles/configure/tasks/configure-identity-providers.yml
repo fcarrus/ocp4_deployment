@@ -15,36 +15,15 @@
         identityProviders: "{{ ocp4_deployment_cluster_identity_providers }}"
 
 - name: Install GroupSync Operator
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s:
-    kind: List
-    definition: "{{ lookup('template', 'groupsync-operator.j2') }}"
-
-- name: Retrieve GroupSync Operator Information
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s_info:
-    api_version: operators.coreos.com/v1alpha1
-    name: group-sync-operator
-    namespace: group-sync-operator
-    kind: Subscription
-  register: _ocp4_deployment_operator_installation
-
-- name: Wait for GroupSync InstallPlan to Complete
-  vars:
-    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_operator_installation.resources[0].status.installplan.name }}"
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s_info:
-    api_version: operators.coreos.com/v1alpha1
-    name: "{{ _ocp4_deployment_operator_installplan }}"
-    namespace: group-sync-operator
-    kind: InstallPlan
-  register: _ocp4_deployment_installplan_completion
-  retries: 120
-  delay: 5
-  until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+  ansible.builtin.include_tasks:
+    file: install-operator.yml
+    apply:
+      vars:
+        _ocp4_deployment_operator_name: group-sync-operator
+        _ocp4_deployment_operator_namespace: group-sync-operator
+        _ocp4_deployment_operator_channel: "{{ ocp4_deployment_cluster_groupsync_channel }}"
+        _ocp4_deployment_operator_source: community-operators
+        _ocp4_deployment_operator_sourcenamespace: openshift-marketplace
 
 - name: Create GroupSync object
   delegate_to: localhost

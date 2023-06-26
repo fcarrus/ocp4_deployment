@@ -1,3 +1,41 @@
+- name: "Create Namespace : {{ _ocp4_deployment_operator_namespace }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    definition:
+      - kind: Namespace
+        apiVersion: v1
+        metadata:
+          name: "{{ _ocp4_deployment_operator_namespace }}"
+          annotations:
+            openshift.io/node-selector: ""
+          labels:
+            openshift.io/cluster-monitoring: "true"
+
+- name: "Retrieve OperatorGroup for namespace : {{ _ocp4_deployment_operator_namespace }}"
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_info:
+    api_version: operators.coreos.com/v1
+    kind: OperatorGroup
+    namespace: "{{ _ocp4_deployment_operator_namespace }}"
+  register: _ocp4_deployment_namespace_operatorgroup
+
+- name: "Create OperatorGroup : {{ _ocp4_deployment_operator_name }}"
+  delegate_to: localhost
+  run_once: true
+  when: _ocp4_deployment_namespace_operatorgroup.resources | length == 0
+  kubernetes.core.k8s:
+    definition:
+      - apiVersion: operators.coreos.com/v1
+        kind: OperatorGroup
+        metadata:
+          name: "{{ _ocp4_deployment_operator_name }}"
+          namespace: "{{ _ocp4_deployment_operator_namespace }}"
+        spec:
+          targetNamespaces:
+            - "{{ _ocp4_deployment_operator_namespace }}"
+
 - name: "Install Operator : {{ _ocp4_deployment_operator_name }}"
   delegate_to: localhost
   run_once: true
@@ -8,8 +46,14 @@
       metadata:
         name: "{{ _ocp4_deployment_operator_name }}"
         namespace: "{{ _ocp4_deployment_operator_namespace }}"
+      spec:
+        channel: "{{ _ocp4_deployment_operator_channel }}"
+        installPlanApproval: Automatic
+        name: "{{ _ocp4_deployment_operator_name }}"
+        source: "{{ _ocp4_deployment_operator_source | d('redhat-operators') }}"
+        sourceNamespace: "{{ _ocp4_deployment_operator_sourcenamespace | d('openshift-marketplace') }}"
 
-- name: "Retrieve Operator Information for : {{ _ocp4_deployment_operator_name }}"
+- name: "Retrieve InstallPlan for : {{ _ocp4_deployment_operator_name }}"
   delegate_to: localhost
   run_once: true
   kubernetes.core.k8s_info:
@@ -17,11 +61,14 @@
     name: "{{ _ocp4_deployment_operator_name }}"
     namespace: "{{ _ocp4_deployment_operator_namespace }}"
     kind: Subscription
-  register: _ocp4_deployment_operator_installation
+  register: _ocp4_deployment_configure_subscription_information
+  retries: 120
+  delay: 5
+  until: _ocp4_deployment_configure_subscription_information.resources[0].status.installplan.name is defined
 
-- name: "Wait for InstallPlan to Complete : {{ _ocp4_deployment_operator_name }}"
+- name: "Wait for InstallPlan to Complete : {{ _ocp4_deployment_operator_installplan }}"
   vars:
-    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_operator_installation.resources[0].status.installplan.name }}"
+    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_configure_subscription_information.resources[0].status.installplan.name }}"
   delegate_to: localhost
   run_once: true
   kubernetes.core.k8s_info:
@@ -33,5 +80,37 @@
   retries: 120
   delay: 5
   until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+
+- name: If Console Plugin is defined
+  when: _ocp4_deployment_operator_enable_consoleplugin is defined
+  block:
+
+    # Workaround for merging strategy
+    - name: Retrieve list of Console Plugins
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s_info:
+        kind: Console
+        api_version: operator.openshift.io/v1
+        name: cluster
+      register: _ocp4_deployment_cluster_consoleplugin_info
+
+    # Add the plugin to the list
+    - name: Enable ODF Console Plugin
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s:
+        kind: Console
+        name: cluster
+        api_version: operator.openshift.io/v1
+        definition:
+          spec:
+            plugins: "{{ (
+              _ocp4_deployment_cluster_consoleplugin_info.resources[0].spec.plugins | d([])
+                +
+              [ _ocp4_deployment_operator_enable_consoleplugin ]
+              ) | unique
+              }}"
+
 
 # code: language=ansible

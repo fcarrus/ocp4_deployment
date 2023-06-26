@@ -6,60 +6,16 @@
   loop: "{{ ansible_play_hosts }}"
 
 - name: Install ODF Operator
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s:
-    kind: List
-    definition: "{{ lookup('template', 'odf-operator.j2') }}"
-    wait: true
-
-- name: Retrieve ODF Operator Information
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s_info:
-    api_version: operators.coreos.com/v1alpha1
-    name: odf-operator
-    namespace: openshift-storage
-    kind: Subscription
-  register: _ocp4_deployment_configure_odf_subscription_status
-
-- name: Wait for ODF InstallPlan
-  vars:
-    _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_configure_odf_subscription_status.resources[0].status.installplan.name }}"
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s_info:
-    api_version: operators.coreos.com/v1alpha1
-    name: "{{ _ocp4_deployment_operator_installplan }}"
-    namespace: openshift-storage
-    kind: InstallPlan
-  register: _ocp4_deployment_installplan_completion
-  retries: 120
-  delay: 5
-  until:
-    - _ocp4_deployment_installplan_completion.resources | length == 1
-    - _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
-
-# Workaround
-- name: Retrive list of Console Plugins
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s_info:
-    kind: Console
-    name: cluster
-    api_version: operator.openshift.io/v1
-  register: _ocp4_deployment_cluster_console_info
-
-- name: Enable ODF Console Plugin
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s:
-    kind: Console
-    name: cluster
-    api_version: operator.openshift.io/v1
-    definition:
-      spec:
-        plugins: "{{ (_ocp4_deployment_cluster_console_info.resources[0].spec.plugins | d([]) + ['odf-console']) | unique }}"
+  ansible.builtin.include_tasks:
+    file: install-operator.yml
+    apply:
+      vars:
+        _ocp4_deployment_operator_name: odf-operator
+        _ocp4_deployment_operator_namespace: openshift-storage
+        _ocp4_deployment_operator_channel: "{{ ocp4_deployment_cluster_odf_version }}"
+        _ocp4_deployment_operator_source: redhat-operators
+        _ocp4_deployment_operator_sourcenamespace: openshift-marketplace
+        _ocp4_deployment_operator_enable_consoleplugin: odf-console
 
 - name: Configure CSI Plugin Tolerations
   delegate_to: localhost
@@ -75,33 +31,15 @@
   block:
 
     - name: Install LocalStorage Operator
-      delegate_to: localhost
-      run_once: true
-      kubernetes.core.k8s:
-        kind: List
-        definition: "{{ lookup('template', 'localstorage-operator.j2') }}"
-        wait: true
-
-    - name: Wait for LocalStorage Operator to Complete Installation
-      delegate_to: localhost
-      run_once: true
-      kubernetes.core.k8s_info:
-        api_version: operators.coreos.com/v1alpha1
-        name: local-storage-operator
-        namespace: openshift-local-storage
-        kind: Subscription
-      register: _ocp4_deployment_configure_localstorage_subscription_status
-      retries: 120
-      delay: 5
-      until:
-        - |
-          _ocp4_deployment_configure_localstorage_subscription_status.resources | length > 0
-        - |
-          _ocp4_deployment_configure_localstorage_subscription_status.resources[0].status.currentCSV is defined
-        - |
-          _ocp4_deployment_configure_localstorage_subscription_status.resources[0].status.conditions |
-          selectattr("type","equalto","InstallPlanPending") |
-          length == 0
+      ansible.builtin.include_tasks:
+        file: install-operator.yml
+        apply:
+          vars:
+            _ocp4_deployment_operator_name: local-storage-operator
+            _ocp4_deployment_operator_namespace: openshift-local-storage
+            _ocp4_deployment_operator_channel: stable
+            _ocp4_deployment_operator_source: redhat-operators
+            _ocp4_deployment_operator_sourcenamespace: openshift-marketplace
 
     - name: Create LocalVolumeDiscovery
       delegate_to: localhost
@@ -113,6 +51,11 @@
         namespace: openshift-local-storage
         definition:
           spec:
+            tolerations:
+              - effect: NoSchedule
+                operator: Equal
+                key: node.ocs.openshift.io/storage
+                value: 'true'
             nodeSelector:
               nodeSelectorTerms:
                 - matchExpressions:
@@ -147,6 +90,11 @@
         namespace: openshift-local-storage
         definition:
           spec:
+            tolerations:
+              - effect: NoSchedule
+                operator: Equal
+                key: node.ocs.openshift.io/storage
+                value: 'true'
             nodeSelector:
               nodeSelectorTerms:
                 - matchExpressions:
@@ -155,20 +103,10 @@
             storageClassName: localblock-odf
             volumeMode: Block
             deviceInclusionSpec:
-              deviceTypes: # list of types to allow
+              deviceTypes:
                 - disk
-                # - part # omit this to use only whole devices
-              # deviceMechanicalProperty:
-              #   - NonRotational
-              minSize: 100Gi # optional, minimum size of device to allow
-              maxSize: 100Ti # optional, maximum size of device to allow
-              # models: # (optional) list of models to allow
-              #   - SAMSUNG
-              #   - Crucial_CT525MX3
-              # vendors: # (optional) list of device vendors to allow
-              #   - ATA
-              #   - ST2000LM
-            # maxDeviceCount: 10 # optional, limit devices provisioned per node
+              minSize: 100Gi
+              maxSize: 100Ti
 
     - name: Create Storage Cluster with Local Storage
       delegate_to: localhost
