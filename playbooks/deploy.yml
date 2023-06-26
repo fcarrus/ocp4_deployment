@@ -26,7 +26,7 @@
       ansible.builtin.command:
         chdir: "{{ ocp4_deployment_install_path }}"
         cmd: openshift-install wait-for bootstrap-complete --dir=./install
-      changed_when: true
+      changed_when: false
 
     - name: Post-Deploy VMware Tasks
       ansible.builtin.import_role:
@@ -40,6 +40,6 @@
       ansible.builtin.command:
         chdir: "{{ ocp4_deployment_install_path }}"
         cmd: openshift-install wait-for install-complete --dir=./install
-      changed_when: true
+      changed_when: false
 
 # code: language=ansible
