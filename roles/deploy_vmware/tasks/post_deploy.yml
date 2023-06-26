@@ -10,3 +10,5 @@
     force: true
     delete_from_inventory: true
     validate_certs: false
+  retries: 5
+  delay: 10
