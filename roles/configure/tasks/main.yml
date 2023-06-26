@@ -25,6 +25,24 @@
   tags:
     - node-labels
 
+- name: Configure Ingress Controller
+  ansible.builtin.include_tasks:
+    file: configure-ingress-controller.yml
+    apply:
+      tags:
+        - ingress
+  tags:
+    - ingress
+
+- name: Wait for Cluster Operators to Settle
+  ansible.builtin.include_tasks:
+    file: wait-cluster-operators.yml
+    apply:
+      tags:
+        - ingress
+  tags:
+    - always
+
 - name: Configure ODF Storage Stack
   when: ocp4_deployment_cluster_odf_install | bool
   ansible.builtin.include_tasks:
@@ -34,15 +52,6 @@
         - odf
   tags:
     - odf
-
-- name: Configure Ingress Controller
-  ansible.builtin.include_tasks:
-    file: configure-ingress-controller.yml
-    apply:
-      tags:
-        - ingress
-  tags:
-    - ingress
 
 - name: Configure Proxy
   ansible.builtin.include_tasks:
@@ -67,7 +76,6 @@
     file: wait-cluster-operators.yml
     apply:
       tags:
-        - ingress
         - ca-bundle
         - proxy
   tags:
@@ -151,15 +159,6 @@
   tags:
     - api-certificate
 
-- name: Taint Nodes
-  ansible.builtin.include_tasks:
-    file: configure-node-taints.yml
-    apply:
-      tags:
-        - node-taints
-  tags:
-    - node-taints
-
 - name: Wait for Cluster Operators to Settle
   ansible.builtin.include_tasks:
     file: wait-cluster-operators.yml
@@ -180,5 +179,13 @@
   tags:
     - rhacm
 
+- name: Taint Nodes
+  ansible.builtin.include_tasks:
+    file: configure-node-taints.yml
+    apply:
+      tags:
+        - node-taints
+  tags:
+    - node-taints
 
 # code: language=ansible
