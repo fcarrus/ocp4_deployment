@@ -4,22 +4,25 @@ metadata:
   name: rook-ceph-operator-config
   namespace: openshift-storage
 data:
-  CSI_PLUGIN_TOLERATIONS: |2-
-    - key: node.ocs.openshift.io/storage
-      operator: Equal
-      value: "true"
-      effect: NoSchedule
-    - effect: NoSchedule
-      key: infra
-      value: reserved
-    - effect: NoExecute
-      key: infra
-      value: reserved
-  CSI_PROVISIONER_TOLERATIONS: |2-
-    - key: node.ocs.openshift.io/storage
-      operator: Equal
-      value: "true"
-      effect: NoSchedule
   CSI_LOG_LEVEL: "5"
+{% if groups.infra_nodes | length > 0 or groups.storage_nodes | length > 0 %}
+  CSI_PLUGIN_TOLERATIONS: |2-
+{% if groups.infra_nodes | length > 0 %}
+{% filter indent(4, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+{% endif -%}
+{% if groups.storage_nodes | length > 0 %}
+{% filter indent(4, True) -%}
+{{ hostvars[groups.storage_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+{% endif -%}
+{% if groups.storage_nodes | length > 0 %}
+  CSI_PROVISIONER_TOLERATIONS: |2-
+{% filter indent(4, True) -%}
+{{ hostvars[groups.storage_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
 
 # code: language=yaml

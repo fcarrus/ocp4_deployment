@@ -12,25 +12,23 @@ data:
 {% endfilter %}
 {% endif %}
 {% if groups.infra_nodes | length > 0 %}
-      nodeSelector:
-        node-role.kubernetes.io/infra: ""
       tolerations:
-      - key: infra
-        value: reserved
-        effect: "NoSchedule"
-      - key: infra
-        value: reserved
-        effect: "NoExecute"
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
 {% endif %}
-    thanosRuler:
 {% if groups.infra_nodes | length > 0 %}
-      nodeSelector:
-        node-role.kubernetes.io/infra: ""
+    thanosRuler:
       tolerations:
-      - key: infra
-        value: reserved
-        effect: "NoSchedule"
-      - key: infra
-        value: reserved
-        effect: "NoExecute"
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
 {% endif %}
