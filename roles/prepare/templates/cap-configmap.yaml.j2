@@ -17,16 +17,13 @@ data:
     echo "Approving CSRs for the following nodes:"
     echo $EXPECTED_NODES
 
-    while [ true ] ;
-    do
+    while [ true ] ; do
         echo "$(date +'%Y-%m-%d_%H:%M:%S') Checking for pending CSRs..."
         PENDING_CSRS=`oc get csr | grep Pending | awk '{ print $1 }'`
-        for CSR in $PENDING_CSRS
-        do
+        for CSR in $PENDING_CSRS; do
             NAME=`oc describe csr $CSR | grep "Common Name" | sed 's/.*system:node://'`
             echo "$(date +'%Y-%m-%d_%H:%M:%S') Checking if $NAME is part of EXPECTED_NODES"
-            for NODE in $EXPECTED_NODES
-            do
+            for NODE in $EXPECTED_NODES; do
                 if [ "$NAME" = "$NODE" ] ; then
                     echo "$(date +'%Y-%m-%d_%H:%M:%S') $CSR $NAME == $NODE"
                     echo "$(date +'%Y-%m-%d_%H:%M:%S') $(oc adm certificate approve $CSR)"
