@@ -5,14 +5,6 @@
   any_errors_fatal: true
   tasks:
 
-    - name: Check vars - bastion server is 1
-      run_once: true
-      ansible.builtin.assert:
-        that:
-          - groups.bastion is defined
-          - groups.bastion | length == 1
-        fail_msg: "Bastion group does not contain exactly one server."
-
     - name: Check vars - bootstrap server is 1
       run_once: true
       ansible.builtin.assert:
@@ -36,13 +28,6 @@
           - groups.master_nodes is defined
           - groups.master_nodes | length == 1
         fail_msg: "Masters group does not contain exactly 1 server."
-
-    # - name: Check vars - infras servers
-    #   ansible.builtin.assert:
-    #     that:
-    #       - groups.infra_nodes is defined
-    #       - groups.infra_nodes | length > 0
-    #     fail_msg: "The infras group does not contain exactly 3 servers."
 
     - name: Check vars - workers servers > 0 unless SNO or Compact
       when:
@@ -173,26 +158,17 @@
         fail_msg: "Variable ocp4_deployment_cluster_coreos_ssh_pubkey parameter is not defined."
 
     - name: Check vars - install path
-      when: inventory_hostname in groups.bastion
       ansible.builtin.assert:
         that:
           - ocp4_deployment_install_path is defined
         fail_msg: "Variable ocp4_deployment_install_path parameter is not defined."
 
-    # - name: Check vars - trust bundle
-    #   ansible.builtin.assert:
-    #     that:
-    #       - ocp4_deployment_cluster_trust_bundle is defined
-    #     fail_msg: "Variable ocp4_deployment_cluster_trust_bundle parameter is not defined."
-
     - name: Check vars - check VM parameters
-      when: inventory_hostname not in groups.bastion
+      when: group_names in ['master_nodes', 'worker_nodes', 'infra_nodes', 'storage_nodes']
       ansible.builtin.assert:
         that:
           - ocp4_deployment_nodes_ipaddress is defined
           - ocp4_deployment_nodes_ipaddress | ansible.utils.ipaddr('address')
-          # - ocp4_deployment_nodes_gateway is defined
-          # - ocp4_deployment_nodes_gateway | ansible.utils.ipaddr('address')
           - ocp4_deployment_nodes_netmask is defined
           - ocp4_deployment_nodes_netmask | ansible.utils.ipaddr('netmask')
         fail_msg: "One or more of the servers is missing a parameter (ocp4_nodes_{ipaddress,gateway,netmask})."
@@ -210,13 +186,6 @@
           - ocp4_deployment_cluster_wildcard_ssl_cert is defined
           - ocp4_deployment_cluster_wildcard_ssl_key is defined
         fail_msg: "One of ocp4_deployment_cluster_wildcard_ssl_cert or ocp4_deployment_cluster_wildcard_ssl_key variables is not defined."
-
-    # - name: Check vars - Registries
-    #   ansible.builtin.assert:
-    #     that:
-    #       - insecure_registries is defined
-    #       - allowed_registries is defined
-    #     fail_msg: "The registries variable not defined or is empty."
 
     - name: Check vars - storage_cluster_size
       when:
