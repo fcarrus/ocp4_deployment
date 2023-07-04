@@ -1,0 +1,10 @@
+- name: Configure External NFS Server
+  hosts: nfsserver
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Configure NFS Server
+      ansible.builtin.include_role:
+        name: oasis_roles.system.nfs_server
+
+# code: language=ansible
