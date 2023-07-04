@@ -14,32 +14,48 @@
         tasks_from: pre_deploy.yml
       when: ocp4_deployment_platform_provider == 'vmware'
 
-    - name: Deploy VMware VMs
-      ansible.builtin.import_role:
-        name: fcarrus.ocp4_deployment.deploy_vmware
-        tasks_from: deploy.yml
-      when: ocp4_deployment_platform_provider == 'vmware'
+    - name: UPI Deployment
+      when: ocp4_deployment_is_upi | bool
+      block:
 
-    - name: Wait for bootstrap to complete
-      delegate_to: localhost
-      run_once: true
-      ansible.builtin.command:
-        chdir: "{{ ocp4_deployment_install_path }}"
-        cmd: openshift-install wait-for bootstrap-complete --dir=./install
-      changed_when: false
+        - name: Deploy VMware VMs
+          ansible.builtin.import_role:
+            name: fcarrus.ocp4_deployment.deploy_vmware
+            tasks_from: deploy.yml
+          when: ocp4_deployment_platform_provider == 'vmware'
 
-    - name: Post-Deploy VMware Tasks
-      ansible.builtin.import_role:
-        name: fcarrus.ocp4_deployment.deploy_vmware
-        tasks_from: post_deploy.yml
-      when: ocp4_deployment_platform_provider == 'vmware'
+        - name: Wait for bootstrap to complete
+          delegate_to: localhost
+          run_once: true
+          ansible.builtin.command:
+            chdir: "{{ ocp4_deployment_install_path }}"
+            cmd: openshift-install wait-for bootstrap-complete --dir=./install
+          changed_when: false
 
-    - name: Wait for installation to complete
-      delegate_to: localhost
-      run_once: true
-      ansible.builtin.command:
-        chdir: "{{ ocp4_deployment_install_path }}"
-        cmd: openshift-install wait-for install-complete --dir=./install
-      changed_when: false
+        - name: Post-Deploy VMware Tasks
+          ansible.builtin.import_role:
+            name: fcarrus.ocp4_deployment.deploy_vmware
+            tasks_from: post_deploy.yml
+          when: ocp4_deployment_platform_provider == 'vmware'
+
+        - name: Wait for installation to complete
+          delegate_to: localhost
+          run_once: true
+          ansible.builtin.command:
+            chdir: "{{ ocp4_deployment_install_path }}"
+            cmd: openshift-install wait-for install-complete --dir=./install
+          changed_when: false
+
+    - name: IPI Deployment
+      when: not ocp4_deployment_is_upi | bool
+      block:
+
+        - name: Create cluster
+          delegate_to: localhost
+          run_once: true
+          ansible.builtin.command:
+            chdir: "{{ ocp4_deployment_install_path }}"
+            cmd: openshift-install create cluster --dir=./install
+          changed_when: false
 
 # code: language=ansible
