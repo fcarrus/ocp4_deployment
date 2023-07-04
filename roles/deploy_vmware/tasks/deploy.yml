@@ -60,7 +60,7 @@
         folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}"
         guest_id: coreos64Guest
         hardware: "{{ ocp4_deployment_nodes_vmware_hardware }}"
-        name: "{{ vmware_node_name | d(inventory_hostname) }}"
+        name: "{{ ocp4_deployment_nodes_fqdn | d(inventory_hostname) }}"
         state: poweredon
         template: "RHCOS-{{ ocp4_deployment_cluster_rhcos_version }}-Template"
         advanced_settings:
@@ -72,7 +72,15 @@
             value: "TRUE"
           - key: "guestinfo.afterburn.initrd.network-kargs"
             value: >
-              ip={{ [ocp4_deployment_nodes_ipaddress, '', ocp4_deployment_nodes_gateway | d(''), ocp4_deployment_nodes_netmask, ocp4_deployment_nodes_fqdn | d(inventory_hostname), '', 'none'] | join(':') }}
+              ip={{ [
+                      ocp4_deployment_nodes_ipaddress,
+                      '',
+                      ocp4_deployment_nodes_gateway | d(''),
+                      ocp4_deployment_nodes_netmask,
+                      ocp4_deployment_nodes_fqdn | d(inventory_hostname),
+                      '',
+                      'none'
+                    ] | join(':') }}
               {{ ['nameserver'] | product(ocp4_deployment_nodes_dns_servers) | map('join', '=') | join(' ') }}
               {{ ['rd.route'] | product(ocp4_deployment_nodes_static_routes | d([])) | map('join', '=') | join(' ') }}
 
@@ -83,15 +91,10 @@
     hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
     username: "{{ ocp4_deployment_vmware_vcenter_username }}"
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
-    # cluster: "{{ ocp4_deployment_vmware_cluster }}"
-    # datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
-    # datastore: "{{ ocp4_deployment_vmware_datastore }}"
     validate_certs: false
     disk: "{{ ocp4_deployment_nodes_vmware_disks }}"
-    # folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}"
-    # guest_id: coreos64Guest
     hardware: "{{ ocp4_deployment_nodes_vmware_hardware }}"
-    name: "{{ vmware_node_name | d(inventory_hostname) }}"
+    name: "{{ ocp4_deployment_nodes_fqdn | d(inventory_hostname) }}"
     # state: poweredon
 
 # code: language=ansible
