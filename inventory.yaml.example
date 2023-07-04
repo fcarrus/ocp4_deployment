@@ -1,0 +1,486 @@
+all:
+  vars:
+
+    # Cluster name and subdomain.
+    ocp4_deployment_cluster_name: mycluster
+    ocp4_deployment_cluster_basedomain: example.com
+
+    # Platform provider of choice (where the VMs are created). Only vmware is supported at the moment.
+    ocp4_deployment_platform_provider: vmware
+
+    # Whether OCP is installed in agnostic mode (platform: "none").
+    ocp4_deployment_is_agnostic: false
+
+    # Install mode. upi creates the machines, ipi leaves the creation to openshift-install.
+    ocp4_deployment_is_upi: true
+
+    # Whether OCP cluster is SNO (Single Node Openshift) or Compact (3-masters, schedulable)
+    ocp4_deployment_cluster_is_singlenode: false
+    ocp4_deployment_cluster_is_compact: false
+
+    # VMware parameters.
+    ocp4_deployment_vmware_vcenter_hostname: vcenter.example.com
+    ocp4_deployment_vmware_vcenter_username: username-mycluster@vcenter.example.com
+    ocp4_deployment_vmware_vcenter_password: mypassword
+    ocp4_deployment_vmware_datacenter: MyDatacenter
+    ocp4_deployment_vmware_datastore: MyDatastore
+    ocp4_deployment_vmware_cluster: MyCluster-1
+    ocp4_deployment_vmware_network: my-network-segment
+    ocp4_deployment_vmware_vcenter_folder: /MyFolder/
+
+    # VIP addresses. If they are provided and deployment is not agnostic, use Keepalived as internal balancer.
+    ocp4_deployment_cluster_api_vip: 192.168.1.201
+    ocp4_deployment_cluster_ingress_vip: 192.168.1.202
+
+    # Overlay Network configuration
+    ocp4_deployment_cluster_pod_network:
+      - cidr: 10.128.0.0/20
+        hostPrefix: 24
+    ocp4_deployment_cluster_network_type: OVNKubernetes
+    ocp4_deployment_cluster_service_network:
+        - 172.30.0.0/20
+    ocp4_deployment_cluster_machine_network:
+      - cidr: 192.168.1.0/24
+
+    # SSH Public key to be deployed inside CoreOS nodes
+    ocp4_deployment_cluster_coreos_ssh_pubkey: >-
+      ssh-rsa ...
+
+    # OCP Cluster version to be deployed
+    ocp4_deployment_cluster_version: 4.13.3
+    # Do not change this. Defaults to major OCP version.
+    ocp4_deployment_cluster_rhcos_version: "{{ ocp4_deployment_cluster_version | split('.') | slice(2) | first | join('.') }}"
+
+    # Whether to install ODF
+    ocp4_deployment_cluster_odf_install: false
+
+    # ODF Channel to use during Operator installation
+    ocp4_deployment_cluster_odf_version: "stable-4.13"
+
+    # Whether PVs are dynamically created (i.e. CSI Driver is installed)
+    #   or not (i.e. agnostic installations). Ensure storage nodes have an additional disk 
+    #   to be used with LocalStorage.
+    ocp4_deployment_cluster_odf_use_localstorage: true
+
+    # If ODF PVs are dynamically created, choose the size.
+    # See documentation for all supported size values.
+    # ocp4_deployment_cluster_odf_dynprov_size: '0.5Ti'
+
+    # Use a specific storage class instead of the default one.
+    # ocp4_deployment_cluster_odf_dynprov_storageclass: thin
+
+    # The Pull Secret to be retrieved from https://console.redhat.com/openshift/downloads
+    ocp4_deployment_cluster_pull_secret: >-
+      {"auths":{...}}
+
+    # Not implemented yet.
+    ocp4_deployment_cluster_configure_mirror: false
+
+    # The DNS resolvers for all nodes.
+    ocp4_deployment_nodes_dns_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+
+    # The NTP servers for all nodes.
+    ocp4_deployment_nodes_ntp_servers:
+      - ntp1.inrim.it
+      - ntp2.inrim.it
+
+    # Whether the proxy configuration must be set in OpenShift
+    ocp4_deployment_cluster_configure_proxy: false
+    # Proxy configuration details.
+    # ocp4_deployment_proxy_env_variables:
+    #   https_proxy: http://192.168.1.10:3128/
+    #   http_proxy: http://192.168.1.10:3128/
+    #   no_proxy: "127.0.0.1,172.16.0.0/12,.{{ ocp4_deployment_cluster_name}}.{{ ocp4_deployment_cluster_basedomain }}"
+
+    # Configure boot-time static routes
+    # ocp4_deployment_nodes_static_routes:
+    #   - '172.0.0.0/12:192.168.1.2'
+
+    # Configure OAuth Identity Providers (IDP). 
+    #   Use ocp4_deployment_cluster_additional_manifests to create the needed Secret
+    ocp4_deployment_cluster_identity_providers: []
+      # - type: LDAP
+      #   mappingMethod: claim
+      #   name: MyLDAP
+      #   ldap:
+      #     attributes:
+      #       email: ["mail"]
+      #       id: ["dn"]
+      #       name: ["cn"]
+      #       preferredUsername: ["sAMAccountName"]
+      #     bindDN: "myldapuser"
+      #     bindPassword: # add a Secret object in ocp4_deployment_cluster_additional_manifests
+      #       name: myldappassword-secret
+      #     insecure: true
+      #     url: |
+      #       ldap://ad.example.com:389/DC=MyCompany,DC=it?sAMAccountName,uid,mail,cn?sub?
+
+    # Configure the GroupSync operator in case LDAP is used as IDP
+    #   Use ocp4_deployment_cluster_additional_manifests to create the needed Secret(s)
+    ocp4_deployment_cluster_groupsync_providers: []
+      # - name: MyLDAP
+      #   ldap:
+      #     caSecret:
+      #       key: ca.crt
+      #       kind: Secret
+      #       name: nomesecret
+      #       namespace: group-sync-operator
+      #     credentialsSecret:
+      #       kind: Secret
+      #       name: ldap-group-sync
+      #       namespace: group-sync-operator
+      #     insecure: false
+      #     rfc2307:
+      #       groupMembershipAttributes:
+      #         - member
+      #       groupNameAttributes:
+      #         - cn
+      #       groupUIDAttribute: dn
+      #       groupsQuery:
+      #         baseDN: "OU=DevOps,OU=Applications,OU=Groups,OU=Organization,DC=domain,DC=com"
+      #         derefAliases: search
+      #         scope: sub
+      #         pageSize: 1
+      #         filter: (objectClass=groupofnames)
+      #       tolerateMemberNotFoundErrors: true
+      #       tolerateMemberOutOfScopeErrors: true
+      #       userNameAttributes:
+      #         - userPrincipalName
+      #       userUIDAttribute: dn
+      #       usersQuery:
+      #         baseDN: "OU=Users,OU=Organization,DC=domain,DC=com"
+      #         scope: sub
+      #         derefAliases: never
+      #         pageSize: 1
+      #     url: ldaps://ldap.example.com:636
+      #     whitelist:
+      #       - CN=MyGroup,OU=DevOps,OU=Applications,OU=Groups,OU=Organization,DC=domain,DC=com"
+
+    # Configure the GroupSync schedule (cron format)
+    # ocp4_deployment_cluster_groupsync_schedule: "0 3 * * *"
+
+    # Additional objects to be created after the cluster is UP
+    # See format spec in kubernetes.core.k8s module
+    ocp4_deployment_cluster_additional_manifests:
+      - api_version: v1
+        kind: PersistentVolume
+        definition:
+          metadata:
+            name: prometheus-volume-0
+            labels: 
+              storage-for: prometheus
+          spec:
+            capacity:
+              storage: 100Gi
+            accessModes:
+              - ReadWriteMany
+            nfs:
+              path: /srv/share1/ocp4-prometheus-0
+              server: bastion.mycluster.example.com
+            persistentVolumeReclaimPolicy: Retain    
+      - api_version: v1
+        kind: PersistentVolume
+        definition:
+          metadata:
+            name: prometheus-volume-1
+            labels: 
+              storage-for: prometheus
+          spec:
+            capacity:
+              storage: 100Gi
+            accessModes:
+              - ReadWriteMany
+            nfs:
+              path: /srv/share1/ocp4-prometheus-1
+              server: bastion.mycluster.example.com
+            persistentVolumeReclaimPolicy: Retain    
+      # Example - create some Secrets
+      # - kind: Secret
+      #   name: ldap-group-sync
+      #   namespace: openshift-config
+      #   definition:
+      #     stringData:
+      #       password: myusername
+      #       username: mypassword
+      # - kind: Secret
+      #   namespace: openshift-config
+      #   name: myldappassword-secret
+      #   definition:
+      #     stringData:
+      #       bindPassword: "myldappassword"
+
+    # A bundle of trusted CAs to be imported into the cluster.
+    ocp4_deployment_cluster_trust_bundle: |
+      -----BEGIN CERTIFICATE-----
+      ... 
+      -----END CERTIFICATE-----
+      -----BEGIN CERTIFICATE-----
+      ... 
+      -----END CERTIFICATE-----
+
+    # Whether to replace the Ingress default certificate
+    ocp4_deployment_cluster_wildcard_certificate_replace: false
+    # The certificate block should also contain the issuing CA
+    ocp4_deployment_cluster_wildcard_ssl_cert: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+    ocp4_deployment_cluster_wildcard_ssl_key: |
+      -----BEGIN PRIVATE KEY-----
+      ...
+      -----END PRIVATE KEY-----
+
+    # Whether to replace the API endpoint certificate
+    ocp4_deployment_cluster_api_certificate_replace: false
+    # The certificate block should also contain the issuing CA
+    ocp4_deployment_cluster_api_ssl_cert: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+    ocp4_deployment_cluster_api_ssl_key: |
+      -----BEGIN PRIVATE KEY-----
+      ...
+      -----END PRIVATE KEY-----
+
+    # Whether to expose the internal registry through a Route.
+    # ocp4_deployment_cluster_registry_expose: false
+
+    # Force the registry replicas to a certain value.
+    # ocp4_deployment_cluster_registry_replicas: 1
+
+    # Configure the registry storage to use a certain storageclass
+    # ocp4_deployment_cluster_registry_storage_config:
+    #   metadata:
+    #     name: registry-storage
+    #   spec:
+    #     accessModes:
+    #       - ReadWriteMany
+    #     resources:
+    #       requests:
+    #         storage: 10Gi
+    #     storageClassName: ocs-storagecluster-cephfs
+
+    # ocp4_deployment_cluster_registry_sources_allowed:
+    #   - docker.io
+    # ocp4_deployment_cluster_registry_sources_insecure:
+    #   - myregistry.example.com
+
+    # Send all ingress logs to an rsyslog server
+    # 
+    # ocp4_deployment_cluster_ingress_logging_config:
+    #   access:
+    #     destination:
+    #       type: Syslog
+    #       syslog:
+    #         address: 192.168.1.10
+    #         port: 514
+
+    # Send all ingress logs to stdout on a sidecar container on the Ingress Pod
+    # Also gather the X-Forwarded-For header and modify the default log format.
+    # 
+    # ocp4_deployment_cluster_ingress_logging_config:
+    #   access:
+    #     destination:
+    #       type: Container
+    #       container:
+    #     httpCaptureHeaders:
+    #       request:
+    #         - maxLength: 15
+    #           name: X-Forwarded-For
+    #     httpLogFormat: >-
+    #       %ci:%cp [%tr] [%[capture.req.hdr(0)]] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST
+    #       %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r
+
+    # Whether to configure OpenShift Monitoring stack
+    ocp4_deployment_cluster_monitoring: true
+    # Whether to enable User Workload Monitoring
+    ocp4_deployment_cluster_monitoring_enable_userworkload: true
+    # Configure Prometheus data retention
+    ocp4_deployment_cluster_monitoring_prometheus_retention: 1w
+    # Configure Prometheus data retention (user workload)
+    ocp4_deployment_cluster_monitoring_userworkload_prometheus_retention: 1w
+    # Configure Prometheus PVC template
+    ocp4_deployment_cluster_monitoring_prometheus_volumeclaim_spec:
+      resources:
+        requests:
+          storage: 100Gi
+      accessModes:
+        - ReadWriteMany
+      selector: 
+        matchLabels:
+          storage-for: prometheus
+
+    ocp4_deployment_cluster_monitoring_alertmanager_volumeclaim_spec: {}
+      # storageClassName: thin
+      # resources:
+      #   requests:
+      #     storage: 10Gi
+
+    ocp4_deployment_cluster_monitoring_userworkload_prometheus_volumeclaim_spec: {}
+      # storageClassName: thin
+      # resources:
+      #   requests:
+      #     storage: 10Gi
+
+    # Whether to install the OpenShift Logging stack
+    ocp4_deployment_cluster_logging: false
+    # Logging stack channel
+    ocp4_deployment_cluster_logging_version: 'stable-5.7'
+
+    # Configure Logging storage
+    # See documentation for all supported storage types (i.e. NFS is not supported)
+    # ocp4_deployment_cluster_logging_logstore_storage:
+    #   size: 100G
+    #   storageClassName: ocs-storagecluster-ceph-rbd
+
+    # Whether to install RHACM and configure cluster as HUB
+    # ocp4_deployment_configure_rhacm_hub: false
+
+    # Do not change this. Fixed internal directory where the automation expects the requirements.
+    ocp4_deployment_install_path: '/ocp4-deployment/'
+
+  children:
+    nfsserver:
+      hosts:
+        bastion.mycluster.example.com:
+          ansible_user: root
+          ansible_become: true
+          ansible_ssh_pass: mypassword
+          # Check out https://github.com/oasis-roles/ansible_collection_system
+          nfs_server_shares:
+            - share_path: /srv/share1/ocp4-prometheus-0
+              host_allow: '192.168.1.0/24'  # IP networks for which to allow access (required)
+              opts: rw,sync,all_squash  # Comma-separated list of mount options (required)
+              create_dir: true  # create the share directory (optional)
+              owner: nobody  # owner of the NFS share directory (optional)
+              group: nobody  # group of the NFS share directory (optional)
+              mode: '0755'  # mode of the NFS share directory (optional). Always use 'quotes'.
+            - share_path: /srv/share1/ocp4-prometheus-1
+              host_allow: '192.168.1.0/24'
+              opts: rw,sync,all_squash
+              create_dir: true
+              owner: nobody
+              group: nobody
+              mode: '0755'
+
+    bootstrap:
+      vars:
+        ocp4_deployment_nodes_gateway: 192.168.1.1
+        ocp4_deployment_nodes_netmask: 255.255.255.0
+      hosts:
+        bootstrap.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.100
+          ocp4_deployment_nodes_vmware_disks:
+            - size_gb: 120
+              type: thick
+              datastore: "{{ ocp4_deployment_vmware_datastore }}"
+          ocp4_deployment_nodes_vmware_hardware:
+            num_cpus: 4
+            memory_mb: 16384
+
+    master_nodes:
+      vars:
+        ocp4_deployment_nodes_gateway: 192.168.1.1
+        ocp4_deployment_nodes_netmask: 255.255.255.0
+        ocp4_deployment_nodes_vmware_hardware:
+          num_cpus: 4
+          memory_mb: 16384
+          hotadd_cpu: true
+          hotadd_memory: true
+        ocp4_deployment_nodes_vmware_disks:
+          - size_gb: 120
+            type: thick
+            datastore: "{{ ocp4_deployment_vmware_datastore }}"
+      hosts:
+        master1.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.101
+        master2.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.102
+        master3.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.103
+    infra_nodes:  # Leave the group definition even when empty
+      # vars:
+      #   ocp4_deployment_nodes_gateway: 192.168.1.1
+      #   ocp4_deployment_nodes_netmask: 255.255.255.0
+      #   ocp4_deployment_nodes_vmware_hardware:
+      #     num_cpus: 4
+      #     memory_mb: 16384
+      #     hotadd_cpu: true
+      #     hotadd_memory: true
+      #   ocp4_deployment_nodes_vmware_disks:
+      #     - size_gb: 120
+      #       type: thick
+      #       datastore: "{{ ocp4_deployment_vmware_datastore }}"
+      #   ocp4_deployment_cluster_nodes_labels:
+      #     node-role.kubernetes.io/infra: ''
+      #   ocp4_deployment_cluster_nodes_taints:
+      #     - effect: NoSchedule
+      #       key: node-role.kubernetes.io/infra
+      # hosts:
+      #   infra1.mycluster.example.com:
+      #     ocp4_deployment_nodes_ipaddress: 192.168.1.111
+      #   infra2.mycluster.example.com:
+      #     ocp4_deployment_nodes_ipaddress: 192.168.1.112
+      #   infra3.mycluster.example.com:
+      #     ocp4_deployment_nodes_ipaddress: 192.168.1.113
+    storage_nodes:  # Leave the group definition even when empty
+      # vars:
+      #   ocp4_deployment_nodes_gateway: 192.168.1.1
+      #   ocp4_deployment_nodes_netmask: 255.255.255.0
+      #   ocp4_deployment_nodes_vmware_hardware:
+      #     num_cpus: 8
+      #     memory_mb: 24576
+      #     hotadd_cpu: true
+      #     hotadd_memory: true
+      #   ocp4_deployment_cluster_nodes_labels:
+      #     node-role.kubernetes.io/infra: ''
+      #     cluster.ocs.openshift.io/openshift-storage: ''
+      #   ocp4_deployment_cluster_nodes_taints:
+      #     - effect: NoSchedule
+      #       operator: Equal
+      #       key: node.ocs.openshift.io/storage
+      #       value: 'true'
+      #   ocp4_deployment_nodes_vmware_disks:
+      #     - size_gb: 120
+      #       type: thick
+      #       datastore: "{{ ocp4_deployment_vmware_datastore }}"
+      #     - size_gb: 512
+      #       type: thick
+      #       datastore: "{{ ocp4_deployment_vmware_datastore }}"
+      # hosts:
+      #   odf1.mycluster.example.com:
+      #     ocp4_deployment_nodes_ipaddress: 192.168.1.131
+      #   odf2.mycluster.example.com:
+      #     ocp4_deployment_nodes_ipaddress: 192.168.1.132
+      #   odf3.mycluster.example.com:
+      #     ocp4_deployment_nodes_ipaddress: 192.168.1.133
+    worker_nodes:  # Leave the group definition even when empty
+      vars:
+        ocp4_deployment_nodes_gateway: 192.168.1.1
+        ocp4_deployment_nodes_netmask: 255.255.255.0
+        ocp4_deployment_nodes_vmware_hardware:
+          num_cpus: 4
+          memory_mb: 16384
+          hotadd_cpu: true
+          hotadd_memory: true
+        ocp4_deployment_nodes_vmware_disks:
+          - size_gb: 120
+            type: thick
+            datastore: "{{ ocp4_deployment_vmware_datastore }}"
+      hosts:
+        worker1.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.121
+        worker2.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.122
+        worker3.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.123
+
+# code: language=yaml
