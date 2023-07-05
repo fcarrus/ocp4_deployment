@@ -6,13 +6,15 @@
     - storage_nodes
   become: false
   gather_facts: false
+  vars:
+    __ocp4_deployment_install_path: "{{ ocp4_deployment_install_path | d('/ocp4-deployment/') }}"
   tasks:
     - name: Configure Cluster
       ansible.builtin.include_role:
         name: fcarrus.ocp4_deployment.configure
         apply:
           environment:
-            K8S_AUTH_KUBECONFIG: "{{ ocp4_deployment_install_path }}/install/auth/kubeconfig"
+            K8S_AUTH_KUBECONFIG: "{{ __ocp4_deployment_install_path }}/install/auth/kubeconfig"
       tags:
         - always
 

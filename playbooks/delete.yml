@@ -3,15 +3,18 @@
   connection: local
   become: false
   gather_facts: false
+  vars:
+    __ocp4_deployment_cleanup_pause_seconds: "{{ ocp4_deployment_cleanup_pause_seconds | d(60) }}"
+    __ocp4_deployment_install_path: "{{ ocp4_deployment_install_path | d('/ocp4-deployment/') }}"
   tasks:
     - name: Wait for confirmation
       ansible.builtin.pause:
-        seconds: "{{ ocp4_deployment_cleanup_pause_seconds }}"
-        prompt: "Are you sure you want to delete the install directory? You have {{ ocp4_deployment_cleanup_pause_seconds }} seconds to cancel."
+        seconds: "{{ __ocp4_deployment_cleanup_pause_seconds }}"
+        prompt: "Are you sure you want to delete the install directory? You have {{ __ocp4_deployment_cleanup_pause_seconds }} seconds to cancel."
 
     - name: Delete install directory and its contents
       ansible.builtin.file:
-        path: "{{ ocp4_deployment_install_path }}/install"
+        path: "{{ __ocp4_deployment_install_path }}/install"
         state: absent
         force: true
 

@@ -3,6 +3,8 @@
   become: false
   gather_facts: false
   any_errors_fatal: true
+  vars:
+    __ocp4_deployment_install_path: "{{ ocp4_deployment_install_path | d('/ocp4-deployment/') }}"
   tasks:
 
     - name: Check vars - bootstrap server is 1
@@ -160,8 +162,8 @@
     - name: Check vars - install path
       ansible.builtin.assert:
         that:
-          - ocp4_deployment_install_path is defined
-        fail_msg: "Variable ocp4_deployment_install_path parameter is not defined."
+          - __ocp4_deployment_install_path is defined
+        fail_msg: "Variable __ocp4_deployment_install_path parameter is not defined."
 
     - name: Check vars - check VM parameters
       when: group_names in ['master_nodes', 'worker_nodes', 'infra_nodes', 'storage_nodes']

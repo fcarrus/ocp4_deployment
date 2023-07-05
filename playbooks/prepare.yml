@@ -3,6 +3,8 @@
   connection: local
   become: false
   gather_facts: false
+  vars:
+    __ocp4_deployment_install_path: "{{ ocp4_deployment_install_path | d('/ocp4-deployment/') }}"
   tasks:
     - name: Configure Bastion Environment
       ansible.builtin.include_role:

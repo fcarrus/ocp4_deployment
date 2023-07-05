@@ -7,6 +7,8 @@
     - storage_nodes
   become: false
   gather_facts: false
+  vars:
+    __ocp4_deployment_install_path: "{{ ocp4_deployment_install_path | d('/ocp4-deployment/') }}"
   tasks:
     - name: Pre-Deploy VMware Tasks
       ansible.builtin.import_role:
@@ -28,7 +30,7 @@
           delegate_to: localhost
           run_once: true
           ansible.builtin.command:
-            chdir: "{{ ocp4_deployment_install_path }}"
+            chdir: "{{ __ocp4_deployment_install_path }}"
             cmd: openshift-install wait-for bootstrap-complete --dir=./install
           changed_when: false
 
@@ -42,7 +44,7 @@
           delegate_to: localhost
           run_once: true
           ansible.builtin.command:
-            chdir: "{{ ocp4_deployment_install_path }}"
+            chdir: "{{ __ocp4_deployment_install_path }}"
             cmd: openshift-install wait-for install-complete --dir=./install
           changed_when: false
 
@@ -54,7 +56,7 @@
           delegate_to: localhost
           run_once: true
           ansible.builtin.command:
-            chdir: "{{ ocp4_deployment_install_path }}"
+            chdir: "{{ __ocp4_deployment_install_path }}"
             cmd: openshift-install create cluster --dir=./install
           changed_when: false
 
