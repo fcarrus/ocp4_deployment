@@ -1,6 +1,6 @@
 ocp4_deployment_cluster_configure_mirror: false
 
-ocp4_cluster_openshift_client_image: "registry.redhat.io/openshift4/ose-cli:v{{ ocp4_deployment_cluster_rhcos_version }}"
+ocp4_cluster_openshift_client_image: "registry.redhat.io/openshift4/ose-cli:v{{ __ocp4_deployment_cluster_rhcos_version }}"
 
 ocp4_deployment_cluster_pod_network:
   - cidr: 10.128.0.0/14

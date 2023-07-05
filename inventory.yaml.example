@@ -48,8 +48,6 @@ all:
 
     # OCP Cluster version to be deployed
     ocp4_deployment_cluster_version: 4.13.3
-    # Do not change this. Defaults to major OCP version.
-    ocp4_deployment_cluster_rhcos_version: "{{ ocp4_deployment_cluster_version | split('.') | slice(2) | first | join('.') }}"
 
     # Whether to install ODF
     ocp4_deployment_cluster_odf_install: false

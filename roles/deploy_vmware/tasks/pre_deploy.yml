@@ -21,7 +21,7 @@
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
     datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
-    name: "RHCOS-{{ ocp4_deployment_cluster_rhcos_version }}-Template"
+    name: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template"
     folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}"
     validate_certs: false
   register: template_info
@@ -43,8 +43,8 @@
     - '"instance" not in template_info'
   ansible.builtin.get_url:
     dest: "{{ __ocp4_deployment_install_path }}/"
-    url: "{{ ocp4_deployment_rhcos_download_mirror }}/{{ ocp4_deployment_cluster_rhcos_version }}/latest/rhcos-vmware.x86_64.ova"
-    checksum: "sha256:{{ ocp4_deployment_rhcos_download_mirror }}/{{ ocp4_deployment_cluster_rhcos_version }}/latest/sha256sum.txt"
+    url: "{{ ocp4_deployment_rhcos_download_mirror }}/{{ __ocp4_deployment_cluster_rhcos_version }}/latest/rhcos-vmware.x86_64.ova"
+    checksum: "sha256:{{ ocp4_deployment_rhcos_download_mirror }}/{{ __ocp4_deployment_cluster_rhcos_version }}/latest/sha256sum.txt"
   environment: "{{ ocp4_deployment_proxy_env_variables | d({}) }}"
 
 - name: Upload OVA file
@@ -54,7 +54,7 @@
     username: "{{ ocp4_deployment_vmware_vcenter_username }}"
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
-    name: "RHCOS-{{ ocp4_deployment_cluster_rhcos_version }}-Template"
+    name: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template"
     cluster: "{{ ocp4_deployment_vmware_cluster }}"
     datastore: "{{ ocp4_deployment_vmware_datastore }}"
     datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
