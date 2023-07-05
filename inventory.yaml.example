@@ -344,9 +344,6 @@ all:
     # Whether to install RHACM and configure cluster as HUB
     # ocp4_deployment_configure_rhacm_hub: false
 
-    # Do not change this. Fixed internal directory where the automation expects the requirements.
-    ocp4_deployment_install_path: '/ocp4-deployment/'
-
   children:
     nfsserver:
       hosts:
