@@ -3,7 +3,7 @@
     state: directory
     path: "{{ item }}"
   loop:
-    - "{{ ocp4_deployment_install_path }}/install"
+    - "{{ __ocp4_deployment_install_path }}/install"
 
 - name: Include mirror configuration
   when: ocp4_deployment_cluster_configure_mirror | bool
@@ -11,17 +11,17 @@
 
 - name: Detect install-config.yaml file
   ansible.builtin.stat:
-    path: "{{ ocp4_deployment_install_path }}/install/install-config.yaml"
+    path: "{{ __ocp4_deployment_install_path }}/install/install-config.yaml"
   register: install_config_file
 
 - name: Detect install/manifests directory
   ansible.builtin.stat:
-    path: "{{ ocp4_deployment_install_path }}/install/manifests"
+    path: "{{ __ocp4_deployment_install_path }}/install/manifests"
   register: install_manifests_directory
 
 - name: Detect ignition files
   ansible.builtin.stat:
-    path: "{{ ocp4_deployment_install_path }}/install/bootstrap.ign"
+    path: "{{ __ocp4_deployment_install_path }}/install/bootstrap.ign"
   register: install_ignition_files
 
 - name: If install-config does not exist yet
@@ -34,12 +34,12 @@
     - name: Create install-config.yaml file
       ansible.builtin.template:
         src: install-config.yaml.j2
-        dest: "{{ ocp4_deployment_install_path }}/install/install-config.yaml"
+        dest: "{{ __ocp4_deployment_install_path }}/install/install-config.yaml"
 
     - name: Backup install-config file
       ansible.builtin.copy:
-        src: "{{ ocp4_deployment_install_path }}/install/install-config.yaml"
-        dest: "{{ ocp4_deployment_install_path }}/install-config_bak.yaml"
+        src: "{{ __ocp4_deployment_install_path }}/install/install-config.yaml"
+        dest: "{{ __ocp4_deployment_install_path }}/install-config_bak.yaml"
         remote_src: true
 
 - name: If manifests do not exist yet
@@ -50,13 +50,13 @@
 
     - name: Generate manifest files
       ansible.builtin.command:
-        chdir: "{{ ocp4_deployment_install_path }}"
+        chdir: "{{ __ocp4_deployment_install_path }}"
         cmd: openshift-install create manifests --dir=./install/
       changed_when: true
 
     - name: Remove machineset definitions
       ansible.builtin.shell:
-        chdir: "{{ ocp4_deployment_install_path }}"
+        chdir: "{{ __ocp4_deployment_install_path }}"
         cmd: rm -vf ./install/openshift/99_openshift-cluster-api_master-machines-*.yaml ./install/openshift/99_openshift-cluster-api_worker-machineset-*.yaml
       changed_when: true
 
@@ -68,13 +68,13 @@
 
         - name: Set masters as unschedulable
           ansible.builtin.lineinfile:
-            path: "{{ ocp4_deployment_install_path }}/install/manifests/cluster-scheduler-02-config.yml"
+            path: "{{ __ocp4_deployment_install_path }}/install/manifests/cluster-scheduler-02-config.yml"
             regexp: "^  mastersSchedulable: true$"
             line: "  mastersSchedulable: false"
 
         - name: Load auto approver objects files
           ansible.builtin.copy:
-            dest: "{{ ocp4_deployment_install_path }}/install/manifests/"
+            dest: "{{ __ocp4_deployment_install_path }}/install/manifests/"
             src: "{{ item }}"
           loop:
             - cap-clusterrole.yaml
@@ -84,7 +84,7 @@
 
         - name: Load auto approver objects templates
           ansible.builtin.template:
-            dest: "{{ ocp4_deployment_install_path }}/install/manifests/{{ item }}"
+            dest: "{{ __ocp4_deployment_install_path }}/install/manifests/{{ item }}"
             src: "{{ item }}.j2"
           loop:
             - cap-deployment.yaml
@@ -92,7 +92,7 @@
 
     - name: Load chrony template
       ansible.builtin.template:
-        dest: "{{ ocp4_deployment_install_path }}/install/manifests/{{ item }}s-chrony-configuration.yaml"
+        dest: "{{ __ocp4_deployment_install_path }}/install/manifests/{{ item }}s-chrony-configuration.yaml"
         src: chrony-machine-config.j2
       loop:
         - master
@@ -105,7 +105,7 @@
 
     - name: Generate ignition files
       ansible.builtin.command:
-        chdir: "{{ ocp4_deployment_install_path }}"
+        chdir: "{{ __ocp4_deployment_install_path }}"
         cmd: |
           openshift-install create ignition-configs --dir=./install/
       changed_when: true
