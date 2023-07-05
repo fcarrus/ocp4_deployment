@@ -90,3 +90,11 @@ All the tags available for the configure playbook are:
 * `rhacm`: Install RHACM and configure the cluster as Hub.
 * `selfprov`: Disable the self-provisioning feature.
 * `update-cap`: Updates the cluster auto approver with additional nodes after scaling up.
+
+## Other uses
+
+There is a playbook to configure an external RHEL-like server with NFS shares (see documentation in the inventory example file):
+
+```shell
+$ ./run.sh external_nfs
+```
