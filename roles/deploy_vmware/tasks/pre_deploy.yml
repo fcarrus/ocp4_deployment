@@ -31,7 +31,7 @@
   delegate_to: localhost
   run_once: true
   ansible.builtin.stat:
-    path: "{{ ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
+    path: "{{ __ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
     get_checksum: false
   register: template_file
 
@@ -42,7 +42,7 @@
     - not template_file.stat.exists
     - '"instance" not in template_info'
   ansible.builtin.get_url:
-    dest: "{{ ocp4_deployment_install_path }}/"
+    dest: "{{ __ocp4_deployment_install_path }}/"
     url: "{{ ocp4_deployment_rhcos_download_mirror }}/{{ ocp4_deployment_cluster_rhcos_version }}/latest/rhcos-vmware.x86_64.ova"
     checksum: "sha256:{{ ocp4_deployment_rhcos_download_mirror }}/{{ ocp4_deployment_cluster_rhcos_version }}/latest/sha256sum.txt"
   environment: "{{ ocp4_deployment_proxy_env_variables | d({}) }}"
@@ -61,7 +61,7 @@
     validate_certs: false
     power_on: false
     networks: "{u'VM Network':u'{{ ocp4_deployment_vmware_network }}'}"
-    ovf: "{{ ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
+    ovf: "{{ __ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
     folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}"
     allow_duplicates: false
   when: |
@@ -71,7 +71,7 @@
   delegate_to: localhost
   run_once: true
   ansible.builtin.file:
-    path: "{{ ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
+    path: "{{ __ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
     state: absent
 
 # code: language=ansible
