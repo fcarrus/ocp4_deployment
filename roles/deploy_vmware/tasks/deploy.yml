@@ -38,7 +38,7 @@
           }}"
       delegate_to: localhost
       ansible.builtin.slurp:
-        src: "{{ ocp4_deployment_install_path }}/install/{{ ignition_filename }}"
+        src: "{{ __ocp4_deployment_install_path }}/install/{{ ignition_filename }}"
       register: ignition_file
       no_log: true
 
