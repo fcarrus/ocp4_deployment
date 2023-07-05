@@ -4,20 +4,19 @@ metadata:
   name: csr-auto-approver-config
   namespace: csr-auto-approver
 data:
-  nodes: |-
-{% filter indent(4, True) -%}
-{% for node in (groups.infra_nodes + groups.worker_nodes + groups.storage_nodes) -%}
-{{ node }}
-{% endfor -%}
-{% endfilter %}
+  nodes: {{ (groups.infra_nodes + groups.worker_nodes + groups.storage_nodes) | join(' ') }}
   approver.sh: |-
     #!/bin/bash
+    
+    trap "exit" TERM
+
     EXPECTED_NODES=`cat /data/nodes`
 
     echo "Approving CSRs for the following nodes:"
     echo $EXPECTED_NODES
 
     while [ true ] ; do
+
         echo "$(date +'%Y-%m-%d_%H:%M:%S') Checking for pending CSRs..."
         PENDING_CSRS=`oc get csr | grep Pending | awk '{ print $1 }'`
         for CSR in $PENDING_CSRS; do
@@ -32,5 +31,7 @@ data:
         done
 
         echo "Sleeping for 30 seconds..."
-        sleep 30
+        for i in $(seq 1 15); do
+          sleep 2
+        done
     done
