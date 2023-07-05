@@ -93,7 +93,7 @@ All the tags available for the configure playbook are:
 
 ## Other uses
 
-There is a playbook to configure an external RHEL-like server with NFS shares (see documentation in the inventory example file):
+There is a playbook for configuring an external RHEL-like server with NFS shares (see documentation in the inventory example file):
 
 ```shell
 $ ./run.sh external_nfs
