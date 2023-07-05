@@ -14,33 +14,36 @@
       spec:
         identityProviders: "{{ ocp4_deployment_cluster_identity_providers }}"
 
-- name: Install GroupSync Operator
-  ansible.builtin.include_tasks:
-    file: install-operator.yml
-    apply:
-      vars:
-        _ocp4_deployment_operator_name: group-sync-operator
-        _ocp4_deployment_operator_namespace: group-sync-operator
-        _ocp4_deployment_operator_channel: "{{ ocp4_deployment_cluster_groupsync_channel }}"
-        _ocp4_deployment_operator_source: community-operators
-        _ocp4_deployment_operator_sourcenamespace: openshift-marketplace
-
-- name: Create GroupSync object
-  delegate_to: localhost
-  run_once: true
+- name: If GroupSync is configured
   when:
     - ocp4_deployment_cluster_groupsync_providers is iterable
     - ocp4_deployment_cluster_groupsync_providers is not string
     - ocp4_deployment_cluster_groupsync_providers is not mapping
     - ocp4_deployment_cluster_groupsync_providers | length > 0
-  kubernetes.core.k8s:
-    api_version: redhatcop.redhat.io/v1alpha1
-    kind: GroupSync
-    name: ldap-groupsync
-    namespace: group-sync-operator
-    definition:
-      spec:
-        schedule: "{{ ocp4_deployment_cluster_groupsync_schedule }}"
-        providers: "{{ ocp4_deployment_cluster_groupsync_providers }}"
+  block:
+
+    - name: Install GroupSync Operator
+      ansible.builtin.include_tasks:
+        file: install-operator.yml
+        apply:
+          vars:
+            _ocp4_deployment_operator_name: group-sync-operator
+            _ocp4_deployment_operator_namespace: group-sync-operator
+            _ocp4_deployment_operator_channel: "{{ ocp4_deployment_cluster_groupsync_channel }}"
+            _ocp4_deployment_operator_source: community-operators
+            _ocp4_deployment_operator_sourcenamespace: openshift-marketplace
+
+    - name: Create GroupSync object
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s:
+        api_version: redhatcop.redhat.io/v1alpha1
+        kind: GroupSync
+        name: ldap-groupsync
+        namespace: group-sync-operator
+        definition:
+          spec:
+            schedule: "{{ ocp4_deployment_cluster_groupsync_schedule }}"
+            providers: "{{ ocp4_deployment_cluster_groupsync_providers }}"
 
 # code: language=ansible
