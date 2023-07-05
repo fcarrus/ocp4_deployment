@@ -1,0 +1,20 @@
+- name: Update Cluster Auto Approver ConfigMap
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: ConfigMap
+    namespace: csr-auto-approver
+    name: csr-auto-approver-config
+    definition:
+      data:
+        nodes: "{{ (groups.infra_nodes + groups.worker_nodes + groups.storage_nodes) | join(' ') }}"
+
+- name: Restart Cluster Auto Approver Pod
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: Pod
+    namespace: csr-auto-approver
+    label_selectors:
+      - 'app=csr-auto-approver'
+    state: absent

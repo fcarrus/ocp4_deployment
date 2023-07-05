@@ -1,3 +1,12 @@
+- name: Update Auto Approver Configmap
+  ansible.builtin.include_tasks:
+    file: update-cap.yml
+    apply:
+      tags:
+        - update-cap
+  tags:
+    - update-cap
+
 - name: Wait for nodes to be Ready
   ansible.builtin.include_tasks:
     file: wait-nodes.yml
