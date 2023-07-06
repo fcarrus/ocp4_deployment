@@ -401,63 +401,63 @@ all:
           ocp4_deployment_nodes_ipaddress: 192.168.1.102
         master3.mycluster.example.com:
           ocp4_deployment_nodes_ipaddress: 192.168.1.103
-    infra_nodes:  # Leave the group definition even when empty
-      # vars:
-      #   ocp4_deployment_nodes_gateway: 192.168.1.1
-      #   ocp4_deployment_nodes_netmask: 255.255.255.0
-      #   ocp4_deployment_nodes_vmware_hardware:
-      #     num_cpus: 4
-      #     memory_mb: 16384
-      #     hotadd_cpu: true
-      #     hotadd_memory: true
-      #   ocp4_deployment_nodes_vmware_disks:
-      #     - size_gb: 120
-      #       type: thick
-      #       datastore: "{{ ocp4_deployment_vmware_datastore }}"
-      #   ocp4_deployment_cluster_nodes_labels:
-      #     node-role.kubernetes.io/infra: ''
-      #   ocp4_deployment_cluster_nodes_taints:
-      #     - effect: NoSchedule
-      #       key: node-role.kubernetes.io/infra
-      # hosts:
-      #   infra1.mycluster.example.com:
-      #     ocp4_deployment_nodes_ipaddress: 192.168.1.111
-      #   infra2.mycluster.example.com:
-      #     ocp4_deployment_nodes_ipaddress: 192.168.1.112
-      #   infra3.mycluster.example.com:
-      #     ocp4_deployment_nodes_ipaddress: 192.168.1.113
-    storage_nodes:  # Leave the group definition even when empty
-      # vars:
-      #   ocp4_deployment_nodes_gateway: 192.168.1.1
-      #   ocp4_deployment_nodes_netmask: 255.255.255.0
-      #   ocp4_deployment_nodes_vmware_hardware:
-      #     num_cpus: 8
-      #     memory_mb: 24576
-      #     hotadd_cpu: true
-      #     hotadd_memory: true
-      #   ocp4_deployment_cluster_nodes_labels:
-      #     node-role.kubernetes.io/infra: ''
-      #     cluster.ocs.openshift.io/openshift-storage: ''
-      #   ocp4_deployment_cluster_nodes_taints:
-      #     - effect: NoSchedule
-      #       operator: Equal
-      #       key: node.ocs.openshift.io/storage
-      #       value: 'true'
-      #   ocp4_deployment_nodes_vmware_disks:
-      #     - size_gb: 120
-      #       type: thick
-      #       datastore: "{{ ocp4_deployment_vmware_datastore }}"
-      #     - size_gb: 512
-      #       type: thick
-      #       datastore: "{{ ocp4_deployment_vmware_datastore }}"
-      # hosts:
-      #   odf1.mycluster.example.com:
-      #     ocp4_deployment_nodes_ipaddress: 192.168.1.131
-      #   odf2.mycluster.example.com:
-      #     ocp4_deployment_nodes_ipaddress: 192.168.1.132
-      #   odf3.mycluster.example.com:
-      #     ocp4_deployment_nodes_ipaddress: 192.168.1.133
-    worker_nodes:  # Leave the group definition even when empty
+    infra_nodes:
+      vars:
+        ocp4_deployment_nodes_gateway: 192.168.1.1
+        ocp4_deployment_nodes_netmask: 255.255.255.0
+        ocp4_deployment_nodes_vmware_hardware:
+          num_cpus: 4
+          memory_mb: 16384
+          hotadd_cpu: true
+          hotadd_memory: true
+        ocp4_deployment_nodes_vmware_disks:
+          - size_gb: 120
+            type: thick
+            datastore: "{{ ocp4_deployment_vmware_datastore }}"
+        ocp4_deployment_cluster_nodes_labels:
+          node-role.kubernetes.io/infra: ''
+        ocp4_deployment_cluster_nodes_taints:
+          - effect: NoSchedule
+            key: node-role.kubernetes.io/infra
+      hosts:
+        infra1.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.111
+        infra2.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.112
+        infra3.mycluster.example.com:
+          ocp4_deployment_nodes_ipaddress: 192.168.1.113
+    # storage_nodes:
+    #   vars:
+    #     ocp4_deployment_nodes_gateway: 192.168.1.1
+    #     ocp4_deployment_nodes_netmask: 255.255.255.0
+    #     ocp4_deployment_nodes_vmware_hardware:
+    #       num_cpus: 8
+    #       memory_mb: 24576
+    #       hotadd_cpu: true
+    #       hotadd_memory: true
+    #     ocp4_deployment_cluster_nodes_labels:
+    #       node-role.kubernetes.io/infra: ''
+    #       cluster.ocs.openshift.io/openshift-storage: ''
+    #     ocp4_deployment_cluster_nodes_taints:
+    #       - effect: NoSchedule
+    #         operator: Equal
+    #         key: node.ocs.openshift.io/storage
+    #         value: 'true'
+    #     ocp4_deployment_nodes_vmware_disks:
+    #       - size_gb: 120
+    #         type: thick
+    #         datastore: "{{ ocp4_deployment_vmware_datastore }}"
+    #       - size_gb: 512
+    #         type: thick
+    #         datastore: "{{ ocp4_deployment_vmware_datastore }}"
+    #   hosts:
+    #     odf1.mycluster.example.com:
+    #       ocp4_deployment_nodes_ipaddress: 192.168.1.131
+    #     odf2.mycluster.example.com:
+    #       ocp4_deployment_nodes_ipaddress: 192.168.1.132
+    #     odf3.mycluster.example.com:
+    #       ocp4_deployment_nodes_ipaddress: 192.168.1.133
+    worker_nodes:
       vars:
         ocp4_deployment_nodes_gateway: 192.168.1.1
         ocp4_deployment_nodes_netmask: 255.255.255.0
