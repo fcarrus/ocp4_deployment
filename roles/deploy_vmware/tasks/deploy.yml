@@ -47,7 +47,7 @@
       when: |
         inventory_hostname in groups.bootstrap and _ocp4_deployment_cluster_is_healthy.status != 200
           or
-        inventory_hostname in (groups.master_nodes + groups.infra_nodes + groups.worker_nodes + groups.storage_nodes)
+        inventory_hostname in (groups.master_nodes | d([]) + groups.infra_nodes | d([]) + groups.worker_nodes | d([]) + groups.storage_nodes | d([]) )
       community.vmware.vmware_guest:
         hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
         username: "{{ ocp4_deployment_vmware_vcenter_username }}"

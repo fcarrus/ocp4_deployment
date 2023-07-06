@@ -7,7 +7,7 @@
     name: csr-auto-approver-config
     definition:
       data:
-        nodes: "{{ (groups.infra_nodes + groups.worker_nodes + groups.storage_nodes) | join(' ') }}"
+        nodes: "{{ (groups.infra_nodes | d([]) + groups.worker_nodes | d([]) + groups.storage_nodes | d([]) ) | join(' ') }}"
 
 - name: Restart Cluster Auto Approver Pod
   delegate_to: localhost

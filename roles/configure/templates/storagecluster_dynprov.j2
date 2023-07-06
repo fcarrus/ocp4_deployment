@@ -18,7 +18,7 @@ spec:
     cephObjectStores: {}
   storageDeviceSets:
     - config: {}
-      count: {{ groups.storage_nodes | length // 3 }}
+      count: {{ groups.storage_nodes | d([]) | length // 3 }}
       dataPVCTemplate:
         metadata:
           creationTimestamp: null
@@ -37,4 +37,4 @@ spec:
       replica: 3
       resources: {}
 
-# code: language=yaml
+# code: language=ansible-jinja

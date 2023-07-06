@@ -11,7 +11,7 @@ data:
 {{ ocp4_deployment_cluster_monitoring_userworkload_prometheus_volumeclaim_spec | to_nice_yaml }}
 {% endfilter %}
 {% endif %}
-{% if groups.infra_nodes | length > 0 %}
+{% if groups.infra_nodes | d([]) | length > 0 %}
       tolerations:
 {% filter indent(8, True) -%}
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
@@ -21,7 +21,7 @@ data:
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
 {% endfilter %}
 {% endif %}
-{% if groups.infra_nodes | length > 0 %}
+{% if groups.infra_nodes | d([]) | length > 0 %}
     thanosRuler:
       tolerations:
 {% filter indent(8, True) -%}

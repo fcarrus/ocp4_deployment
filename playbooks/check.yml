@@ -21,7 +21,7 @@
       ansible.builtin.assert:
         that:
           - groups.master_nodes is defined
-          - groups.master_nodes | length == 3
+          - groups.master_nodes | d([]) | length == 3
         fail_msg: "Masters group does not contain exactly 3 servers."
 
     - name: Check vars - master server is 1 when SNO
@@ -29,7 +29,7 @@
       ansible.builtin.assert:
         that:
           - groups.master_nodes is defined
-          - groups.master_nodes | length == 1
+          - groups.master_nodes | d([]) | length == 1
         fail_msg: "Masters group does not contain exactly 1 server."
 
     - name: Check vars - workers servers > 0 unless SNO or Compact
@@ -39,7 +39,7 @@
       ansible.builtin.assert:
         that:
           - groups.worker_nodes is defined
-          - groups.worker_nodes | length > 0
+          - groups.worker_nodes | d([]) | length > 0
         fail_msg: "Workers group does not contain enough servers."
 
     - name: Check vars - odf storage servers are % 3 or none
@@ -47,7 +47,7 @@
       ansible.builtin.assert:
         that:
           - groups.storage_nodes is defined
-          - ( groups.storage_nodes | length %3 ) == 0
+          - ( groups.storage_nodes | d([]) | length %3 ) == 0
         fail_msg: "Storage group list of servers is not valid."
 
     - name: Check vars - ocp4_deployment_platform_provider

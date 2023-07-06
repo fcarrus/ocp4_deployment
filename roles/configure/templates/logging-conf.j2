@@ -7,7 +7,7 @@ spec:
         resources:
           limits:
             memory: 1Gi
-{% if groups.infra_nodes | length > 0 %}
+{% if groups.infra_nodes | d([]) | length > 0 %}
         tolerations:
 {% filter indent(10, True) -%}
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
@@ -16,7 +16,7 @@ spec:
   curation:
     type: curator
     curator:
-{% if groups.infra_nodes | length > 0 %}
+{% if groups.infra_nodes | d([]) | length > 0 %}
       tolerations:
 {% filter indent(10, True) -%}
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
@@ -37,7 +37,7 @@ spec:
           cpu: 500m
           memory: 4Gi
 
-{% if groups.infra_nodes | length > 0 %}
+{% if groups.infra_nodes | d([]) | length > 0 %}
       tolerations:
 {% filter indent(10, True) -%}
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
@@ -61,7 +61,7 @@ spec:
     type: kibana
     kibana:
       replicas: 1
-{% if groups.infra_nodes | length > 0 %}
+{% if groups.infra_nodes | d([]) | length > 0 %}
       tolerations:
 {% filter indent(10, True) -%}
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}

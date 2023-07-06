@@ -11,6 +11,20 @@
     __ocp4_deployment_install_path: "{{ ocp4_deployment_install_path | d('/ocp4-deployment/') }}"
     __ocp4_deployment_cluster_rhcos_version: "{{ ocp4_deployment_cluster_version | split('.') | slice(2) | first | join('.') }}"
   tasks:
+    - name: Check install directory exists
+      delegate_to: localhost
+      run_once: true
+      ansible.builtin.stat:
+        path: "{{ __ocp4_deployment_install_path }}/install"
+      register: __ocp4_deployment_installdir_stat
+    
+    - name: Assert install directory exists
+      run_once: true
+      ansible.builtin.assert:
+        that:
+          - __ocp4_deployment_installdir_stat.stat.exists
+        fail_msg: "Install directory does not exist. Please run the 'prepare' phase first."
+
     - name: Pre-Deploy VMware Tasks
       ansible.builtin.import_role:
         name: fcarrus.ocp4_deployment.deploy_vmware

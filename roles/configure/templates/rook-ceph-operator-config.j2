@@ -5,24 +5,24 @@ metadata:
   namespace: openshift-storage
 data:
   CSI_LOG_LEVEL: "5"
-{% if groups.infra_nodes | length > 0 or groups.storage_nodes | length > 0 %}
+{% if groups.infra_nodes | d([]) | length > 0 or groups.storage_nodes | d([]) | length > 0 %}
   CSI_PLUGIN_TOLERATIONS: |2-
-{% if groups.infra_nodes | length > 0 %}
+{% if groups.infra_nodes | d([]) | length > 0 %}
 {% filter indent(4, True) -%}
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
 {% endfilter %}
 {% endif -%}
-{% if groups.storage_nodes | length > 0 %}
+{% if groups.storage_nodes | d([]) | length > 0 %}
 {% filter indent(4, True) -%}
 {{ hostvars[groups.storage_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
 {% endfilter %}
 {% endif %}
 {% endif -%}
-{% if groups.storage_nodes | length > 0 %}
+{% if groups.storage_nodes | d([]) | length > 0 %}
   CSI_PROVISIONER_TOLERATIONS: |2-
 {% filter indent(4, True) -%}
 {{ hostvars[groups.storage_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
 {% endfilter %}
 {% endif %}
 
-# code: language=yaml
+# code: language=ansible-jinja
