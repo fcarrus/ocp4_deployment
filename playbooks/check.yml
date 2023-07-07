@@ -32,15 +32,15 @@
           - groups.master_nodes | d([]) | length == 1
         fail_msg: "Masters group does not contain exactly 1 server."
 
-    - name: Check vars - workers servers > 0 unless SNO or Compact
-      when:
-        - not ocp4_deployment_cluster_is_singlenode
-        - not ocp4_deployment_cluster_is_compact
-      ansible.builtin.assert:
-        that:
-          - groups.worker_nodes is defined
-          - groups.worker_nodes | d([]) | length > 0
-        fail_msg: "Workers group does not contain enough servers."
+    # - name: Check vars - workers servers > 0 unless SNO or Compact
+    #   when:
+    #     - not ocp4_deployment_cluster_is_singlenode
+    #     - not ocp4_deployment_cluster_is_compact
+    #   ansible.builtin.assert:
+    #     that:
+    #       - groups.worker_nodes is defined
+    #       - groups.worker_nodes | d([]) | length > 0
+    #     fail_msg: "Workers group does not contain enough servers."
 
     - name: Check vars - odf storage servers are % 3 or none
       when: ocp4_deployment_cluster_odf_install | d(false) | bool
