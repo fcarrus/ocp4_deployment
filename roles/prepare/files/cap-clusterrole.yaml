@@ -23,6 +23,6 @@ rules:
   resources:
   - signers
   resourceNames:
-  - '*'
+  - 'kubernetes.io/*'
   verbs:
   - approve
