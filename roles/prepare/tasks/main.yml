@@ -24,6 +24,23 @@
     path: "{{ __ocp4_deployment_install_path }}/install/bootstrap.ign"
   register: install_ignition_files
 
+- name: Download openshift-install binary
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    include: "{{ item.include }}"
+    creates: "{{ __ocp4_deployment_install_path }}/{{ item.include }}"
+  loop:
+    - src: "{{ ocp4_deployment_clients_download_mirror }}/openshift-install-linux.tar.gz"
+      dest: "{{ __ocp4_deployment_install_path }}/"
+      include: openshift-install
+    - src: "{{ ocp4_deployment_clients_download_mirror }}/openshift-client-linux.tar.gz"
+      dest: "{{ __ocp4_deployment_install_path }}/"
+      include: oc
+
 - name: If install-config does not exist yet
   when:
     - "not install_config_file.stat.exists"
@@ -51,7 +68,7 @@
     - name: Generate manifest files
       ansible.builtin.command:
         chdir: "{{ __ocp4_deployment_install_path }}"
-        cmd: openshift-install create manifests --dir=./install/
+        cmd: "{{ __ocp4_deployment_install_path }}/openshift-install create manifests --dir=./install/"
       changed_when: true
 
     - name: Remove machineset definitions
@@ -106,8 +123,7 @@
     - name: Generate ignition files
       ansible.builtin.command:
         chdir: "{{ __ocp4_deployment_install_path }}"
-        cmd: |
-          openshift-install create ignition-configs --dir=./install/
+        cmd: "{{ __ocp4_deployment_install_path }}/openshift-install create ignition-configs --dir=./install/"
       changed_when: true
 
 # code: language=ansible

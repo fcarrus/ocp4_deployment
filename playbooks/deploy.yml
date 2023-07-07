@@ -46,7 +46,7 @@
           run_once: true
           ansible.builtin.command:
             chdir: "{{ __ocp4_deployment_install_path }}"
-            cmd: openshift-install wait-for bootstrap-complete --dir=./install
+            cmd: "{{ __ocp4_deployment_install_path }}/openshift-install wait-for bootstrap-complete --dir=./install"
           changed_when: false
 
         - name: Post-Deploy VMware Tasks
@@ -60,7 +60,7 @@
           run_once: true
           ansible.builtin.command:
             chdir: "{{ __ocp4_deployment_install_path }}"
-            cmd: openshift-install wait-for install-complete --dir=./install
+            cmd: "{{ __ocp4_deployment_install_path }}/openshift-install wait-for install-complete --dir=./install"
           changed_when: false
 
     - name: IPI Deployment
@@ -72,7 +72,7 @@
           run_once: true
           ansible.builtin.command:
             chdir: "{{ __ocp4_deployment_install_path }}"
-            cmd: openshift-install create cluster --dir=./install
+            cmd: "{{ __ocp4_deployment_install_path }}/openshift-install create cluster --dir=./install"
           changed_when: false
 
 # code: language=ansible
