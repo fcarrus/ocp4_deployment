@@ -107,6 +107,15 @@
             - cap-deployment.yaml
             - cap-configmap.yaml
 
+    - name: If Infra nodes are defined
+      when: groups.infra_nodes | d([]) | length > 0
+      block:
+
+        - name: Deploy IngressController manifest
+          ansible.builtin.template:
+            dest: "{{ __ocp4_deployment_install_path }}/install/manifests/default-ingresscontroller.yaml"
+            src: default-ingresscontroller.j2
+
     - name: Load chrony template
       ansible.builtin.template:
         dest: "{{ __ocp4_deployment_install_path }}/install/manifests/{{ item }}s-chrony-configuration.yaml"
