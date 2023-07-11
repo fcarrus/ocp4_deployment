@@ -9,7 +9,7 @@ controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
-  replicas: {{ ocp4_deployment_cluster_is_singlenode | ternary(1, 3) }}
+  replicas: {{ (ocp4_deployment_cluster_flavor == 'sno') | ternary(1, 3) }}
 metadata:
   creationTimestamp: null
   name: {{ ocp4_deployment_cluster_name }}

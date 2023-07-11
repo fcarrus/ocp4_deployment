@@ -15,8 +15,7 @@ all:
     ocp4_deployment_is_upi: true
 
     # Whether OCP cluster is SNO (Single Node Openshift) or Compact (3-masters, schedulable)
-    ocp4_deployment_cluster_is_singlenode: false
-    ocp4_deployment_cluster_is_compact: false
+    ocp4_deployment_cluster_flavor: standard  # < standard | compact | sno >
 
     # VMware parameters.
     ocp4_deployment_vmware_vcenter_hostname: vcenter.example.com

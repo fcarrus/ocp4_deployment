@@ -78,9 +78,7 @@
       changed_when: true
 
     - name: If Control Plane has High Availability
-      when:
-        - not ocp4_deployment_cluster_is_singlenode
-        - not ocp4_deployment_cluster_is_compact
+      when: ocp4_deployment_cluster_flavor == 'standard'
       block:
 
         - name: Set masters as unschedulable

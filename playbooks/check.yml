@@ -16,8 +16,8 @@
           - groups.bootstrap | length == 1
         fail_msg: "Bootstrap group does not contain exactly one server."
 
-    - name: Check vars - master servers are 3 unless SNO
-      when: not ocp4_deployment_cluster_is_singlenode
+    - name: Check vars - master servers are 3 on standard clusters 
+      when: ocp4_deployment_cluster_flavor == 'standard'
       ansible.builtin.assert:
         that:
           - groups.master_nodes is defined
@@ -25,22 +25,20 @@
         fail_msg: "Masters group does not contain exactly 3 servers."
 
     - name: Check vars - master server is 1 when SNO
-      when: ocp4_deployment_cluster_is_singlenode
+      when: ocp4_deployment_cluster_flavor == 'sno'
       ansible.builtin.assert:
         that:
           - groups.master_nodes is defined
           - groups.master_nodes | d([]) | length == 1
         fail_msg: "Masters group does not contain exactly 1 server."
 
-    # - name: Check vars - workers servers > 0 unless SNO or Compact
-    #   when:
-    #     - not ocp4_deployment_cluster_is_singlenode
-    #     - not ocp4_deployment_cluster_is_compact
-    #   ansible.builtin.assert:
-    #     that:
-    #       - groups.worker_nodes is defined
-    #       - groups.worker_nodes | d([]) | length > 0
-    #     fail_msg: "Workers group does not contain enough servers."
+    - name: Check vars - workers servers > 0 unless SNO or Compact
+      when: ocp4_deployment_cluster_flavor == 'standard'
+      ansible.builtin.assert:
+        that:
+          - groups.worker_nodes is defined
+          - groups.worker_nodes | d([]) | length > 0
+        fail_msg: "Workers group does not contain enough servers."
 
     - name: Check vars - odf storage servers are % 3 or none
       when: ocp4_deployment_cluster_odf_install | d(false) | bool
@@ -106,7 +104,7 @@
               'community.general.dig',
               'test.apps.{{ ocp4_deployment_cluster_name }}.{{ ocp4_deployment_cluster_basedomain }}./A'
             ) | ansible.utils.ipaddr('address')
-        fail_msg: "One of api, api-int or ingress FQDNs does not resolve"
+        fail_msg: "One of api, api-int or *.apps FQDNs does not resolve"
 
     - name: Check vars - vmware
       when: ocp4_deployment_platform_provider == 'vmware'
