@@ -58,10 +58,14 @@ platform:
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     vcenter: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
     folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm/{{ ocp4_deployment_vmware_vcenter_folder }}"
+{% if ocp4_deployment_cluster_api_vip is defined %}
     apiVIPs:
       - {{ ocp4_deployment_cluster_api_vip }}
+{% endif %}
+{% if ocp4_deployment_cluster_ingress_vip is defined %}
     ingressVIPs:
       - {{ ocp4_deployment_cluster_ingress_vip }}
+{% endif %}
 {% endif %}
 {% endif%}
 publish: External
