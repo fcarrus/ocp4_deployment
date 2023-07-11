@@ -8,21 +8,21 @@ ocp4_deployment_cluster_monitoring: true
 ocp4_deployment_cluster_monitoring_enable_userworkload: false
 ocp4_deployment_cluster_monitoring_prometheus_retention: 2w
 ocp4_deployment_cluster_monitoring_userworkload_prometheus_retention: 2w
-ocp4_deployment_cluster_monitoring_prometheus_volumeclaim_spec:
-  storageClassName: thin
-  resources:
-    requests:
-      storage: 40Gi
-ocp4_deployment_cluster_monitoring_alertmanager_volumeclaim_spec:
-  storageClassName: thin
-  resources:
-    requests:
-      storage: 40Gi
-ocp4_deployment_cluster_monitoring_userworkload_prometheus_volumeclaim_spec:
-  storageClassName: thin
-  resources:
-    requests:
-      storage: 40Gi
+# ocp4_deployment_cluster_monitoring_prometheus_volumeclaim_spec:
+#   storageClassName: thin
+#   resources:
+#     requests:
+#       storage: 40Gi
+# ocp4_deployment_cluster_monitoring_alertmanager_volumeclaim_spec:
+#   storageClassName: thin
+#   resources:
+#     requests:
+#       storage: 40Gi
+# ocp4_deployment_cluster_monitoring_userworkload_prometheus_volumeclaim_spec:
+#   storageClassName: thin
+#   resources:
+#     requests:
+#       storage: 40Gi
 
 ocp4_deployment_cluster_logging: false
 
@@ -32,9 +32,6 @@ ocp4_deployment_cluster_odf_use_localstorage: true
 ocp4_deployment_cluster_odf_dynprov_storageclass: thin
 ocp4_deployment_cluster_odf_dynprov_size: '0.5Ti'
 
-ocp4_deployment_cluster_logging_logstore_storage:
-  size: 100G
-  storageClassName: thin
 ocp4_deployment_cluster_logging_logstore_storage_retention:
   application:
     maxAge: 4d
