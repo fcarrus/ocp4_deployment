@@ -4,6 +4,6 @@
   kubernetes.core.k8s:
     kind: ClusterRoleBinding
     name: self-provisioners
-    definition: "{{ lookup('file', 'self-provisioners.yml') | from_yaml }}"
+    src: self-provisioners.yml
 
 # code: language=ansible

@@ -9,6 +9,6 @@
     api_version: config.openshift.io/v1
     name: cluster
     kind: Image
-    definition: "{{ lookup('template', 'registry-sources.j2') }}"
+    template: registry-sources.j2
 
 # code: language=ansible

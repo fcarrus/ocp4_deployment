@@ -6,8 +6,19 @@
     kind: Secret
     namespace: openshift-ingress
     name: custom-ingress-certificate
-    definition: "{{ lookup('template', 'custom-ingress-certificate.j2') }}"
-  # no_log: true
+    template: custom-ingress-certificate.j2
+  no_log: true
+
+- name: Configure Ingress Controller (remove nodeSelectors)
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_json_patch:
+    kind: IngressController
+    name: default
+    namespace: openshift-ingress-operator
+    patch:
+      - op: remove
+        path: '/spec/nodePlacement'
 
 - name: Configure Ingress Controller
   delegate_to: localhost
@@ -16,6 +27,6 @@
     kind: IngressController
     name: default
     namespace: openshift-ingress-operator
-    definition: "{{ lookup('template', 'ingress-controller-default.j2') }}"
+    template: ingress-controller-default.j2
 
 # code: language=ansible

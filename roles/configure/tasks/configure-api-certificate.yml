@@ -20,7 +20,7 @@
     kind: Secret
     namespace: openshift-config
     name: api-certificate
-    definition: "{{ lookup('template', 'api-certificate-secret.j2') }}"
+    template: api-certificate-secret.j2
 
 - name: Patch API server to accept custom Certificate
   delegate_to: localhost

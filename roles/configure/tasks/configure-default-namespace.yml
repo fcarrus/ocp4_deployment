@@ -5,7 +5,7 @@
     kind: Template
     name: project-request
     namespace: openshift-config
-    definition: "{{ lookup('file', 'project-request.yml') | from_yaml }}"
+    src: project-request.yml
 
 - name: Configure Default Namespace Template
   delegate_to: localhost

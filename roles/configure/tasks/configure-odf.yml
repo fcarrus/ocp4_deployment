@@ -24,7 +24,7 @@
     kind: ConfigMap
     name: rook-ceph-operator-config
     namespace: openshift-storage
-    definition: "{{ lookup('template', 'rook-ceph-operator-config.j2') }}"
+    template: rook-ceph-operator-config.j2
 
 - name: If LocalStorage is being used
   when: ocp4_deployment_cluster_odf_use_localstorage | bool
@@ -115,7 +115,7 @@
       kubernetes.core.k8s:
         kind: List
         namespace: openshift-storage
-        definition: "{{ lookup('template', 'storagecluster-localstorage.j2') }}"
+        template: storagecluster-localstorage.j2
 
 - name: Create Storage Cluster with Dynamic Provisioning
   delegate_to: localhost
@@ -124,7 +124,7 @@
   kubernetes.core.k8s:
     kind: List
     namespace: openshift-storage
-    definition: "{{ lookup('template', 'storagecluster-dynprov.j2') }}"
+    template: storagecluster-dynprov.j2
 
 - name: Wait for StorageCluster to Complete
   delegate_to: localhost

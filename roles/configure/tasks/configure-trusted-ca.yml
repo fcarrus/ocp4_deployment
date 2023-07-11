@@ -6,7 +6,7 @@
     kind: ConfigMap
     name: user-ca-bundle
     namespace: openshift-config
-    definition: "{{ lookup('template', 'user-ca-bundle-configmap.j2') }}"
+    template: user-ca-bundle-configmap.j2
 
 - name: Configure Trusted CA
   delegate_to: localhost
