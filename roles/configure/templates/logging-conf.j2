@@ -49,10 +49,14 @@ spec:
 {% endif %}
       nodeCount: 3
       redundancyPolicy: SingleRedundancy
+{% if ocp4_deployment_cluster_logging_logstore_storage is defined %}
       storage:
 {% filter indent(8, True) -%}
 {{ ocp4_deployment_cluster_logging_logstore_storage | to_nice_yaml }}
 {% endfilter %}
+{% else %}
+      storage: {}
+{% endif %}
     retentionPolicy:
 {% filter indent(6, True) -%}
 {{ ocp4_deployment_cluster_logging_logstore_storage_retention | to_nice_yaml }}
