@@ -4,6 +4,7 @@ metadata:
   name: cluster
 spec:
   managementState: Managed
+  rolloutStrategy: Recreate
 {% if ocp4_deployment_cluster_registry_expose %}
   defaultRoute: true
 {% else %}
@@ -20,10 +21,8 @@ spec:
 {% endfilter %}
 {% endif %}
   replicas: {{ ocp4_deployment_cluster_registry_replicas }}
-  storage:
 {% if ocp4_deployment_cluster_registry_storage_config is defined %}
+  storage:
     pvc:
       claim: {{ ocp4_deployment_cluster_registry_storage_config.metadata.name }}
-{% else %}
-    emptyDir: {}
 {% endif %}
