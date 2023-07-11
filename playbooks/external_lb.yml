@@ -1,0 +1,26 @@
+- name: Configure External Load Balancer
+  hosts: lbserver
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install HAProxy
+      ansible.builtin.yum:
+        name: haproxy
+        state: present
+
+    - name: Configure HAProxy
+      ansible.builtin.template:
+        src: haproxy.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+        owner: root
+        group: root
+        mode: '0644'
+      register: __ocp4_deployment_configure_haproxy
+
+    - name: Enable and (re)start HAProxy
+      ansible.builtin.systemd:
+        name: haproxy
+        state: "{{ __ocp4_deployment_configure_haproxy is changed | ternary('restarted', 'started') }}"
+        enabled: true
+
+# code: language=ansible
