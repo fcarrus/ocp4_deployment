@@ -21,20 +21,36 @@
     namespace: "{{ _ocp4_deployment_operator_namespace }}"
   register: _ocp4_deployment_namespace_operatorgroup
 
-- name: "Create OperatorGroup : {{ _ocp4_deployment_operator_name }}"
-  delegate_to: localhost
-  run_once: true
+- name: If OperatorGroup does not exist
   when: _ocp4_deployment_namespace_operatorgroup.resources | length == 0
-  kubernetes.core.k8s:
-    definition:
-      - apiVersion: operators.coreos.com/v1
-        kind: OperatorGroup
-        metadata:
-          name: "{{ _ocp4_deployment_operator_name }}"
-          namespace: "{{ _ocp4_deployment_operator_namespace }}"
-        spec:
-          targetNamespaces:
-            - "{{ _ocp4_deployment_operator_namespace }}"
+  block:
+
+    - name: "Create OperatorGroup (single-namespace): {{ _ocp4_deployment_operator_name }}"
+      delegate_to: localhost
+      run_once: true
+      when: not _ocp4_deployment_operator_all_namespaces | d(false) | bool
+      kubernetes.core.k8s:
+        definition:
+          - apiVersion: operators.coreos.com/v1
+            kind: OperatorGroup
+            metadata:
+              name: "{{ _ocp4_deployment_operator_name }}"
+              namespace: "{{ _ocp4_deployment_operator_namespace }}"
+            spec:
+              targetNamespaces:
+                - "{{ _ocp4_deployment_operator_namespace }}"
+
+    - name: "Create OperatorGroup (all-namespaces): {{ _ocp4_deployment_operator_name }}"
+      delegate_to: localhost
+      run_once: true
+      when: _ocp4_deployment_operator_all_namespaces | d(false) | bool
+      kubernetes.core.k8s:
+        definition:
+          - apiVersion: operators.coreos.com/v1
+            kind: OperatorGroup
+            metadata:
+              name: "{{ _ocp4_deployment_operator_name }}"
+              namespace: "{{ _ocp4_deployment_operator_namespace }}"
 
 - name: "Install Operator : {{ _ocp4_deployment_operator_name }}"
   delegate_to: localhost
