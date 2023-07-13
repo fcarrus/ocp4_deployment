@@ -5,6 +5,7 @@
       vars:
         _ocp4_deployment_operator_name: elasticsearch-operator
         _ocp4_deployment_operator_namespace: openshift-operators-redhat
+        _ocp4_deployment_operator_all_namespaces: true
         _ocp4_deployment_operator_channel: "{{ ocp4_deployment_cluster_logging_version }}"
         _ocp4_deployment_operator_source: redhat-operators
         _ocp4_deployment_operator_sourcenamespace: openshift-marketplace
