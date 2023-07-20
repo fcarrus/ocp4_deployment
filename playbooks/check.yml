@@ -52,7 +52,7 @@
       ansible.builtin.assert:
         that:
           - ocp4_deployment_platform_provider is defined
-          - ocp4_deployment_platform_provider in ['vmware']
+          - ocp4_deployment_platform_provider in ['vmware', 'aws']
           # - more to add
         fail_msg: "Variable ocp4_deployment_platform_provider is not valid."
 
@@ -64,7 +64,10 @@
           # - ocp4_ocs_version
         fail_msg: "One of the ocp4_*_version variables is not defined."
 
-    - name: Check vars - dns
+    - name: Check vars - dns resolver if ipaddress is static
+      when:
+        - ocp4_deployment_nodes_ipaddress is defined
+        - ocp4_deployment_nodes_ipaddress | ansible.utils.ipaddr
       ansible.builtin.assert:
         that:
           - ocp4_deployment_nodes_dns_servers is defined
