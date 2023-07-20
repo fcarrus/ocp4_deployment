@@ -32,4 +32,16 @@
     namespace: openshift-logging
     template: logging-conf.j2
 
+- name: Configure ClusterLogForwarding
+  delegate_to: localhost
+  run_once: true
+  when: ocp4_deployment_cluster_logging_forwarding_spec is defined
+  kubernetes.core.k8s:
+    kind: ClusterLogForwarding
+    api_version: logging.openshift.io/v1
+    name: instance
+    namespace: openshift-logging
+    definition:
+      spec: "{{ ocp4_deployment_cluster_logging_forwarding_spec }}"
+
 # code: language=ansible
