@@ -98,3 +98,10 @@ There is a playbook for configuring an external RHEL-like server with NFS shares
 ```shell
 $ ./run.sh external_nfs
 ```
+
+
+## References
+
+[VMware vCenter user : required account privileges](
+https://docs.openshift.com/container-platform/4.13/installing/installing_vsphere/installing-vsphere-installer-provisioned-customizations.html#installation-vsphere-installer-infra-requirements_installing-vsphere-installer-provisioned-customizations)
+
