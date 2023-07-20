@@ -71,17 +71,19 @@
           - key: "disk.EnableUUID"
             value: "TRUE"
           - key: "guestinfo.afterburn.initrd.network-kargs"
-            value: >
-              ip={{ [
-                      ocp4_deployment_nodes_ipaddress,
+            value: >-
+              ip={{
+                    [
+                      ocp4_deployment_nodes_ipaddress | d(''),
                       '',
-                      ocp4_deployment_nodes_gateway | d(''),
-                      ocp4_deployment_nodes_netmask,
+                      (ocp4_deployment_nodes_ipaddress is defined) | ternary(ocp4_deployment_nodes_gateway | d(''),''),
+                      (ocp4_deployment_nodes_ipaddress is defined) | ternary(ocp4_deployment_nodes_netmask | d(''),''),
                       ocp4_deployment_nodes_fqdn | d(inventory_hostname),
                       '',
-                      'none'
-                    ] | join(':') }}
-              {{ ['nameserver'] | product(ocp4_deployment_nodes_dns_servers) | map('join', '=') | join(' ') }}
+                      (ocp4_deployment_nodes_ipaddress is defined) | ternary('none', 'dhcp')
+                    ] | join(':')
+              }}
+              {{ ['nameserver'] | product(ocp4_deployment_nodes_dns_servers | d([])) | map('join', '=') | join(' ') }}
               {{ ['rd.route'] | product(ocp4_deployment_nodes_static_routes | d([])) | map('join', '=') | join(' ') }}
 
 - name: If VM exists, apply changes
