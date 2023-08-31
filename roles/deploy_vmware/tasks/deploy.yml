@@ -94,11 +94,7 @@
     username: "{{ ocp4_deployment_vmware_vcenter_username }}"
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     validate_certs: false
-    # Disks are updated only when agnostic mode is enabled (i.e. no dynamic provisioning).
-    # This is because the nodes' disk list also reports disks created as PVs inside OpenShift.
-    disk: "{{ ocp4_deployment_is_agnostic | bool | ternary(ocp4_deployment_nodes_vmware_disks, omit) }}"
     hardware: "{{ ocp4_deployment_nodes_vmware_hardware }}"
     name: "{{ ocp4_deployment_nodes_fqdn | d(inventory_hostname) }}"
-    # state: poweredon
 
 # code: language=ansible
