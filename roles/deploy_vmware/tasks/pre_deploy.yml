@@ -22,7 +22,8 @@
     hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
     datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
     name: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template"
-    folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}"
+    folder: >-
+      /{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}
     validate_certs: false
   register: template_info
   failed_when: false
@@ -66,6 +67,16 @@
     allow_duplicates: false
   when: |
     "instance" not in template_info
+
+- name: Mark OVA as template
+  delegate_to: localhost
+  run_once: true
+  community.vmware.vmware_guest:
+    username: "{{ ocp4_deployment_vmware_vcenter_username }}"
+    password: "{{ ocp4_deployment_vmware_vcenter_password }}"
+    hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
+    name: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template"
+    is_template: true
 
 - name: Remove Local OVA Image
   delegate_to: localhost
