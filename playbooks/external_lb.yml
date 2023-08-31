@@ -17,6 +17,26 @@
         mode: '0644'
       register: __ocp4_deployment_configure_haproxy
 
+    - name: Enable SEbool for HAProxy
+      ansible.posix.seboolean:
+        name: haproxy_connect_any
+        persistent: true
+        state: true
+      ignore_errors: true  # TODO: Check for SELinux first
+
+    - name: Enable Firewall Rules for API ports
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: enabled
+      loop:
+        - 6443/tcp
+        - 22623/tcp
+        - 443/tcp
+        - 80/tcp
+      ignore_errors: true  # TODO: Check for Firewalld first
+
     - name: Enable and (re)start HAProxy
       ansible.builtin.systemd:
         name: haproxy
