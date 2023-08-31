@@ -32,3 +32,14 @@ data:
 {{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
 {% endfilter %}
 {% endif %}
+{% if groups.infra_nodes | d([]) | length > 0 %}
+    prometheusOperator:
+      tolerations:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+      nodeSelector:
+{% filter indent(8, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
