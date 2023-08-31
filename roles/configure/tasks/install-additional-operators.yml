@@ -1,4 +1,4 @@
-- name: Install Operator
+- name: "Install Operator : {{ _ocp4_additional_operator.operator_name }}"
   ansible.builtin.include_tasks:
     file: _install-operator.yml
     apply:
