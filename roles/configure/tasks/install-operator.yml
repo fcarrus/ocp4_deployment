@@ -112,7 +112,7 @@
       register: _ocp4_deployment_cluster_consoleplugin_info
 
     # Add the plugin to the list
-    - name: Enable ODF Console Plugin
+    - name: Enable Console Plugin
       delegate_to: localhost
       run_once: true
       kubernetes.core.k8s:
