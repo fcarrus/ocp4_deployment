@@ -1,6 +1,6 @@
 - name: Install RHACM Operator
   ansible.builtin.include_tasks:
-    file: install-operator.yml
+    file: _install-operator.yml
     apply:
       vars:
         _ocp4_deployment_operator_name: advanced-cluster-management

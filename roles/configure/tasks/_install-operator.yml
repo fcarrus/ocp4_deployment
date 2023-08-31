@@ -98,7 +98,9 @@
   until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
 
 - name: If Console Plugin is defined
-  when: _ocp4_deployment_operator_enable_consoleplugin is defined
+  when: 
+    - _ocp4_deployment_operator_enable_consoleplugin is defined
+    - _ocp4_deployment_operator_enable_consoleplugin != ""
   block:
 
     # Workaround for merging strategy

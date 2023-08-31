@@ -7,7 +7,7 @@
 
 - name: Install ODF Operator
   ansible.builtin.include_tasks:
-    file: install-operator.yml
+    file: _install-operator.yml
     apply:
       vars:
         _ocp4_deployment_operator_name: odf-operator
@@ -32,7 +32,7 @@
 
     - name: Install LocalStorage Operator
       ansible.builtin.include_tasks:
-        file: install-operator.yml
+        file: _install-operator.yml
         apply:
           vars:
             _ocp4_deployment_operator_name: local-storage-operator

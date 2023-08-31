@@ -59,3 +59,6 @@ ocp4_deployment_configure_rhacm_overrides:
 ocp4_deployment_cluster_groupsync_channel: alpha
 ocp4_deployment_cluster_groupsync_providers: []
 ocp4_deployment_cluster_groupsync_schedule: "0 3 * * *"
+
+ocp4_deployment_cluster_additional_manifests: []
+ocp4_deployment_cluster_additional_operators: []

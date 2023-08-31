@@ -1,6 +1,6 @@
 - name: Install ElasticSearch Operator
   ansible.builtin.include_tasks:
-    file: install-operator.yml
+    file: _install-operator.yml
     apply:
       vars:
         _ocp4_deployment_operator_name: elasticsearch-operator
@@ -12,7 +12,7 @@
 
 - name: Install Logging Operator
   ansible.builtin.include_tasks:
-    file: install-operator.yml
+    file: _install-operator.yml
     apply:
       vars:
         _ocp4_deployment_operator_name: cluster-logging

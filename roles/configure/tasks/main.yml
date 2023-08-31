@@ -25,6 +25,15 @@
   tags:
     - manifests
 
+- name: Install additional operators
+  ansible.builtin.include_tasks:
+    file: install-additional-operators.yml
+    apply:
+      tags:
+        - operators
+  tags:
+    - operators
+
 - name: Label nodes
   ansible.builtin.include_tasks:
     file: configure-node-labels.yml
