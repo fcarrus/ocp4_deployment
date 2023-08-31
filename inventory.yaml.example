@@ -123,11 +123,11 @@ all:
       #       key: ca.crt
       #       kind: Secret
       #       name: nomesecret
-      #       namespace: group-sync-operator
+      #       namespace: openshift-config
       #     credentialsSecret:
       #       kind: Secret
       #       name: ldap-group-sync
-      #       namespace: group-sync-operator
+      #       namespace: openshift-config
       #     insecure: false
       #     rfc2307:
       #       groupMembershipAttributes:
@@ -305,15 +305,15 @@ all:
     # Configure Prometheus data retention (user workload)
     ocp4_deployment_cluster_monitoring_userworkload_prometheus_retention: 1w
     # Configure Prometheus PVC template
-    ocp4_deployment_cluster_monitoring_prometheus_volumeclaim_spec:
-      resources:
-        requests:
-          storage: 100Gi
-      accessModes:
-        - ReadWriteMany
-      selector: 
-        matchLabels:
-          storage-for: prometheus
+    ocp4_deployment_cluster_monitoring_prometheus_volumeclaim_spec: {}
+      # resources:
+      #   requests:
+      #     storage: 100Gi
+      # accessModes:
+      #   - ReadWriteMany
+      # selector: 
+      #   matchLabels:
+      #     storage-for: prometheus
 
     ocp4_deployment_cluster_monitoring_alertmanager_volumeclaim_spec: {}
       # storageClassName: thin
