@@ -1,0 +1,40 @@
+spec:
+  central:
+    exposure:
+      loadBalancer:
+        enabled: false
+        port: 443
+      nodePort:
+        enabled: false
+      route:
+        enabled: true
+    db:
+      isEnabled: Default
+      persistence:
+        persistentVolumeClaim:
+          claimName: central-db
+    persistence:
+      persistentVolumeClaim:
+        claimName: stackrox-db
+{% if groups.infra_nodes | d([]) | length > 0 %}
+    tolerations:
+{% filter indent(6, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_taints | to_nice_yaml }}
+{% endfilter %}
+    nodeSelector:
+{% filter indent(6, True) -%}
+{{ hostvars[groups.infra_nodes|first].ocp4_deployment_cluster_nodes_labels | to_nice_yaml }}
+{% endfilter %}
+{% endif %}
+  egress:
+    connectivityPolicy: Online
+  scanner:
+    analyzer:
+      scaling:
+        autoScaling: Enabled
+        maxReplicas: 5
+        minReplicas: 2
+        replicas: 3
+    scannerComponent: Enabled
+
+# code: language=ansible-jinja

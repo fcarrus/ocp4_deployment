@@ -1,0 +1,23 @@
+- name: Install RHACS Operator
+  ansible.builtin.include_tasks:
+    file: _install-operator.yml
+    apply:
+      vars:
+        _ocp4_deployment_operator_name: rhacs-operator
+        _ocp4_deployment_operator_namespace: rhacs-operator
+        _ocp4_deployment_operator_channel: "{{ ocp4_deployment_configure_rhacs_channel }}"
+        _ocp4_deployment_operator_source: redhat-operators
+        _ocp4_deployment_operator_sourcenamespace: openshift-marketplace
+        _ocp4_deployment_operator_all_namespaces: true
+
+- name: Configure RHACS Central
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s:
+    kind: Central
+    api_version: platform.stackrox.io/v1alpha1
+    name: stackrox-central-services
+    namespace: rhacs-operator
+    template: rhacs-central.j2
+
+# code: language=ansible

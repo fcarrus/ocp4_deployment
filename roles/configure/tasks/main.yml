@@ -187,6 +187,16 @@
   tags:
     - always
 
+- name: Configure RHACS
+  when: ocp4_deployment_configure_rhacs | bool
+  ansible.builtin.include_tasks:
+    file: configure-rhacs.yml
+    apply:
+      tags:
+        - rhacs
+  tags:
+    - rhacs
+
 - name: Configure RHACM Cluster Hub
   when: ocp4_deployment_configure_rhacm_hub | bool
   ansible.builtin.include_tasks:
