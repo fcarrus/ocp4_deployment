@@ -26,10 +26,12 @@
         fail_msg: "Install directory does not exist. Please run the 'prepare' phase first."
 
     - name: Pre-Deploy VMware Tasks
+      when: 
+        - ocp4_deployment_is_upi | bool
+        - ocp4_deployment_platform_provider == 'vmware'
       ansible.builtin.import_role:
         name: fcarrus.ocp4_deployment.deploy_vmware
         tasks_from: pre_deploy.yml
-      when: ocp4_deployment_platform_provider == 'vmware'
 
     - name: UPI Deployment
       when: ocp4_deployment_is_upi | bool

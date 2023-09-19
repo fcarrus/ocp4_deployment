@@ -41,6 +41,21 @@
       dest: "{{ __ocp4_deployment_install_path }}/"
       include: oc
 
+- name: Combine additional pull secrets
+  ansible.builtin.set_fact:
+    ocp4_deployment_cluster_pull_secrets_combined:
+      auths: "{{
+          (ocp4_deployment_cluster_pull_secret | from_json).auths | combine(
+            ocp4_deployment_cluster_pull_secrets_combined.auths | d({}) | combine({
+              item.hostname: {
+                'auth': (item.username + ':' + item.password) | b64encode,
+                'email': item.email | d('none@example.com')
+              }
+            })
+          )
+        }}"
+  loop: "{{ ocp4_deployment_cluster_additional_pull_secrets | d([]) }}"
+
 - name: If install-config does not exist yet
   when:
     - "not install_config_file.stat.exists"
@@ -72,14 +87,23 @@
       changed_when: true
 
     - name: Remove machineset definitions
+      when: ocp4_deployment_is_upi | bool
       ansible.builtin.shell:
         chdir: "{{ __ocp4_deployment_install_path }}"
         cmd: rm -vf ./install/openshift/99_openshift-cluster-api_master-machines-*.yaml
         # ./install/openshift/99_openshift-cluster-api_worker-machineset-*.yaml
       changed_when: true
 
+    - name: Create ImageContentSourcePolicy
+      when: ocp4_deployment_imagecontentsourcepolicy is defined
+      ansible.builtin.copy:
+        dest: "{{ __ocp4_deployment_install_path }}/install/manifests/mirror-0.yaml"
+        content: "{{ ocp4_deployment_imagecontentsourcepolicy | to_yaml }}"
+
     - name: If Control Plane has High Availability
-      when: ocp4_deployment_cluster_flavor == 'standard'
+      when:
+        - ocp4_deployment_cluster_flavor == 'standard'
+        - ocp4_deployment_is_upi | bool
       block:
 
         - name: Set masters as unschedulable

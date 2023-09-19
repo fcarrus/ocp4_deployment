@@ -4,7 +4,11 @@ compute:
 - architecture: amd64
   hyperthreading: Enabled
   name: worker
+{% if ocp4_deployment_is_upi | bool %}
   replicas: 0
+{% else %}
+  replicas: {{ (groups.infra_nodes | d([]) + groups.worker_nodes | d([]) + groups.storage_nodes | d([])) | length }}
+{% endif %}
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
@@ -50,14 +54,15 @@ platform:
 {% else %}
 {% if ocp4_deployment_platform_provider == "vmware" %}
   vsphere:
-    cluster: "{{ ocp4_deployment_vmware_cluster }}"
+    cluster: "/{{ ocp4_deployment_vmware_datacenter }}/host/{{ ocp4_deployment_vmware_cluster }}"
     datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
     defaultDatastore: "{{ ocp4_deployment_vmware_datastore }}"
     network: "{{ ocp4_deployment_vmware_network }}"
     username: "{{ ocp4_deployment_vmware_vcenter_username }}"
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     vcenter: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
-    folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm/{{ ocp4_deployment_vmware_vcenter_folder }}"
+    folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm/{{ ocp4_deployment_vmware_vcenter_folder | ansible.builtin.regex_replace('^/+', '') }}"
+{% if ocp4_deployment_is_upi | bool %}
 {% if ocp4_deployment_cluster_api_vip is defined %}
     apiVIPs:
       - {{ ocp4_deployment_cluster_api_vip }}
@@ -67,7 +72,8 @@ platform:
       - {{ ocp4_deployment_cluster_ingress_vip }}
 {% endif %}
 {% endif %}
+{% endif %}
 {% endif%}
 publish: External
-pullSecret: '{{ ocp4_deployment_cluster_pull_secret }}'
+pullSecret: '{{ ocp4_deployment_cluster_pull_secrets_combined | d(ocp4_deployment_cluster_pull_secret) }}'
 sshKey: "{{ ocp4_deployment_cluster_coreos_ssh_pubkey }}"

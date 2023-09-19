@@ -16,6 +16,15 @@
   tags:
     - wait-nodes
 
+- name: Configure Global Pull Secret
+  ansible.builtin.include_tasks:
+    file: configure-pull-secret.yml
+    apply:
+      tags:
+        - pull-secret
+  tags:
+    - pull-secret
+
 - name: Create additional manifests
   ansible.builtin.include_tasks:
     file: create-additional-manifests.yml
@@ -163,9 +172,6 @@
         - registry-sources
   tags:
     - registry-sources
-
-# # - name: Manage Container Catalog Mirror
-# #   ansible.builtin.include_tasks: remove-mirror.yml
 
 - name: Configure Custom Certificate for API Endpoint
   when: ocp4_deployment_cluster_api_certificate_replace | bool
