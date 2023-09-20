@@ -1,9 +1,0 @@
-- name: Create master custom route Machine Config
-  local_action: k8s
-  args:
-    kubeconfig: ./kubeconfig
-    kind: MachineConfig
-    name: master-custom-route
-    definition: "{{ lookup('template', 'master-custom-route-configuration.j2') }}"
-
-# code: language=ansible

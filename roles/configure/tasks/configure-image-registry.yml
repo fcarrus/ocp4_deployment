@@ -11,7 +11,6 @@
   delegate_to: localhost
   run_once: true
   kubernetes.core.k8s:
-    # definition: "{{ lookup('template', 'image-registry.j2') }}"
     template: image-registry.j2
     apply: true
 
