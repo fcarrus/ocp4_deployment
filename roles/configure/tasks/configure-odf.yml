@@ -139,4 +139,18 @@
   delay: 60
   until: _ocp4_deployment_configure_storagecluster_info.resources[0].status.phase | d('') == "Ready"
 
+- name: Enable Ceph Toolbox
+  when: ocp4_deployment_cluster_odf_enable_toolbox | bool
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s_json_patch:
+    api_version: ocs.openshift.io/v1
+    kind: OCSInitialization
+    name: ocsinit
+    namespace: openshift-storage
+    patch:
+      - op: replace
+        path: '/spec/enableCephTools'
+        value: true
+
 # code: language=ansible

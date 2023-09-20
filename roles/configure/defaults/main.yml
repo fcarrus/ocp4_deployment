@@ -64,3 +64,5 @@ ocp4_deployment_cluster_additional_manifests: []
 ocp4_deployment_cluster_additional_operators: []
 
 ocp4_deployment_cluster_configure_pull_secret: false
+
+ocp4_deployment_cluster_odf_enable_toolbox: false
