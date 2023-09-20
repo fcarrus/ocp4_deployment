@@ -1,0 +1,22 @@
+- name: Remove All OCP VMs
+  hosts:
+    - master_nodes
+    - worker_nodes
+    - infra_nodes
+    - storage_nodes
+  become: false
+  gather_facts: false
+  # vars:
+  #   __ocp4_deployment_install_path: "{{ ocp4_deployment_install_path | d('/ocp4-deployment/') }}"
+  #   __ocp4_deployment_cluster_rhcos_version: "{{ ocp4_deployment_cluster_version | split('.') | slice(2) | first | join('.') }}"
+  tasks:
+    - name: Poweron vmware VMs
+      ansible.builtin.include_role:
+        name: fcarrus.ocp4_deployment.deploy_vmware
+        tasks_from: power.yml
+        apply:
+          vars:
+            _ocp4_vm_state: poweredon
+      when: ocp4_deployment_platform_provider == 'vmware'
+
+# code: language=ansible

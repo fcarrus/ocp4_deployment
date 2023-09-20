@@ -1,0 +1,17 @@
+- name: Changing Machines' Power State
+  delegate_to: localhost
+  community.vmware.vmware_guest:
+    hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
+    username: "{{ ocp4_deployment_vmware_vcenter_username }}"
+    password: "{{ ocp4_deployment_vmware_vcenter_password }}"
+    validate_certs: false
+    name: "{{ inventory_hostname }}"
+    state: "{{ _ocp4_vm_state }}"
+    force: true
+    delete_from_inventory: true
+  register: _ocp4_deployment_nodes_poweraction
+  retries: 5
+  delay: 10
+  until: _ocp4_deployment_nodes_poweraction is success
+
+# code: language=ansible
