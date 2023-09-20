@@ -15,4 +15,4 @@ VOLUMES="-v ${MYDIRECTORY}/:/ocp4-deployment/:Z"
 PLAYBOOK=${1:-main}
 
 shift
-podman run -it $VOLUMES --rm $IMAGE fcarrus.ocp4_deployment.$PLAYBOOK $@
+podman run -it $VOLUMES --rm $IMAGE ansible-playbook fcarrus.ocp4_deployment.$PLAYBOOK $@
