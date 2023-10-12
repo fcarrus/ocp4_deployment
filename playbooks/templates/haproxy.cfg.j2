@@ -90,7 +90,7 @@ backend secure
     server {{ hostvars[server].inventory_hostname }} {{ hostvars[server].ocp4_deployment_nodes_ipaddress }}:443 check
 {% endfor %}
 {% else %}
-{% for server in (groups.worker_nodes) %}
+{% for server in ((ocp4_deployment_cluster_flavor in ["sno", "compact"]) | ternary(groups.master_nodes, groups.worker_nodes | d([]))) %}
     server {{ hostvars[server].inventory_hostname }} {{ hostvars[server].ocp4_deployment_nodes_ipaddress }}:443 check
 {% endfor %}
 {% endif %}
@@ -101,7 +101,7 @@ backend insecure
     server {{ hostvars[server].inventory_hostname }} {{ hostvars[server].ocp4_deployment_nodes_ipaddress }}:80 check
 {% endfor %}
 {% else %}
-{% for server in (groups.worker_nodes) %}
+{% for server in ((ocp4_deployment_cluster_flavor in ["sno", "compact"]) | ternary(groups.master_nodes, groups.worker_nodes | d([]))) %}
     server {{ hostvars[server].inventory_hostname }} {{ hostvars[server].ocp4_deployment_nodes_ipaddress }}:80 check
 {% endfor %}
 {% endif %}
