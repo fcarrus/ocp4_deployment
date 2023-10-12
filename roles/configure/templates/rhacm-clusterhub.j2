@@ -1,5 +1,5 @@
 spec:
-  availabilityConfig: High
+  availabilityConfig: {{ (ocp4_deployment_cluster_flavor == 'sno') | ternary('Basic', 'High') }}
 {% if ocp4_deployment_configure_rhacm_overrides is defined %}
   overrides:
     components:
