@@ -59,16 +59,31 @@ all:
     #   to be used with LocalStorage.
     ocp4_deployment_cluster_odf_use_localstorage: true
 
+    # Enable Ceph Toolbox for troubleshooting
+    # https://access.redhat.com/articles/4628891
+    ocp4_deployment_cluster_odf_enable_toolbox: true
+
     # If ODF PVs are dynamically created, choose the size.
     # See documentation for all supported size values.
     # ocp4_deployment_cluster_odf_dynprov_size: '0.5Ti'
 
     # Use a specific storage class instead of the default one.
-    # ocp4_deployment_cluster_odf_dynprov_storageclass: thin
+    # ocp4_deployment_cluster_odf_dynprov_storageclass: thin-csi
 
     # The Pull Secret to be retrieved from https://console.redhat.com/openshift/downloads
     ocp4_deployment_cluster_pull_secret: >-
       {"auths":{...}}
+
+    # Additional credentials to use on external registries
+    # ocp4_deployment_cluster_additional_pull_secrets:
+    #   - hostname: myregistry1.example.com:8443
+    #     username: admin
+    #     password: mysecret
+    #     email: whatever@example.com
+    #   - hostname: another-registry.example.com:5000
+    #     username: user
+    #     password: mysecret
+    #     email: whatever@example.com
 
     # Not implemented yet.
     ocp4_deployment_cluster_configure_mirror: false
@@ -158,7 +173,7 @@ all:
     # Configure the GroupSync schedule (cron format)
     # ocp4_deployment_cluster_groupsync_schedule: "0 3 * * *"
 
-    # Additional objects to be created after the cluster is UP
+    # Additional objects to be created during configuration steps (after the cluster is UP)
     # See format spec in kubernetes.core.k8s module
     ocp4_deployment_cluster_additional_manifests:
       - api_version: v1
@@ -208,7 +223,32 @@ all:
       #     stringData:
       #       bindPassword: "myldappassword"
 
+    # Additional operators to be installed during configuration steps
+    ocp4_deployment_cluster_additional_operators: []
+      # - operator_name: 3scale-operator
+      #   operator_namespace: openshift-operators-redhat
+      #   operator_channel: "threescale-2.13"
+      #   operator_source: redhat-operators
+      #   operator_sourcenamespace: openshift-marketplace
+      #   operator_all_namespaces: true
+
+      # - operator_name: ansible-automation-platform-operator
+      #   operator_namespace: aap
+      #   operator_channel: "stable-2.4"
+      #   operator_source: redhat-operators
+      #   operator_sourcenamespace: openshift-marketplace
+      #   operator_all_namespaces: false
+
+      # -  operator_name: argocd-operator
+      #    operator_namespace: argocd
+      #    operator_channel: "alpha"
+      #    operator_source: community-operators
+      #    operator_sourcenamespace: openshift-marketplace
+      #    operator_all_namespaces: true
+      #    # operator_enable_consoleplugin: N/A
+
     # A bundle of trusted CAs to be imported into the cluster.
+    # A Lookup can be used to retrieve the CA from a file in the inventory directory
     ocp4_deployment_cluster_trust_bundle: |
       -----BEGIN CERTIFICATE-----
       ... 
@@ -216,6 +256,7 @@ all:
       -----BEGIN CERTIFICATE-----
       ... 
       -----END CERTIFICATE-----
+      {{ lookup('ansible.builtin.file', '/ocp4-deployment/another-CA.crt', errors='ignore') }}
 
     # Whether to replace the Ingress default certificate
     ocp4_deployment_cluster_wildcard_certificate_replace: false
@@ -338,13 +379,88 @@ all:
     #   size: 100G
     #   storageClassName: ocs-storagecluster-ceph-rbd
 
+    # Configure Cluster Logging Forwarding
+    # https://docs.openshift.com/container-platform/4.13/logging/cluster-logging-external.html
+    ocp4_deployment_cluster_logging_forwarding_spec: {}
+      # outputs:
+      #   - name: elasticsearch-secure 
+      #     type: "elasticsearch"
+      #     url: https://elasticsearch.secure.com:9200
+      #     secret:
+      #       name: elasticsearch
+      #   - name: elasticsearch-insecure 
+      #     type: "elasticsearch"
+      #     url: http://elasticsearch.insecure.com:9200
+      #   - name: kafka-app 
+      #     type: "kafka"
+      #     url: tls://kafka.secure.com:9093/app-topic
+      # inputs: 
+      #   - name: my-app-logs
+      #     application:
+      #       namespaces:
+      #       - my-project
+      # pipelines:
+      #   - name: audit-logs 
+      #     inputRefs:
+      #       - audit
+      #     outputRefs:
+      #       - elasticsearch-secure
+      #       - default
+      #     parse: json 
+      #     labels:
+      #       secure: "true" 
+      #       datacenter: "east"
+      #   - name: infrastructure-logs 
+      #     inputRefs:
+      #       - infrastructure
+      #     outputRefs:
+      #       - elasticsearch-insecure
+      #     labels:
+      #       datacenter: "west"
+      #   - name: my-app 
+      #     inputRefs:
+      #       - my-app-logs
+      #     outputRefs:
+      #       - default
+      #   - inputRefs: 
+      #       - application
+      #     outputRefs:
+      #       - kafka-app
+      #     labels:
+      #       datacenter: "south"      
+
     # Whether to install RHACM and configure cluster as HUB
     # ocp4_deployment_configure_rhacm_hub: false
 
+    # Add RHACS operator and install the stack
+    # ocp4_deployment_configure_rhacs: true
+    # ocp4_deployment_configure_rhacs_channel: "rhacs-4.1"
+
+    # Use a registry mirror while installing
+    # https://access.redhat.com/documentation/en-us/openshift_container_platform/4.13/html/installing/disconnected-installation-mirroring#installing-mirroring-creating-registry
+    # ocp4_deployment_imagecontentsourcepolicy:
+    #   apiVersion: operator.openshift.io/v1alpha1
+    #   kind: ImageContentSourcePolicy
+    #   metadata:
+    #     name: mirror-0
+    #   spec:
+    #     repositoryDigestMirrors:
+    #     - mirrors:
+    #       - "{{ groups.mirrorserver[0] }}:8443/openshift/release"
+    #       source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+    #     - mirrors:
+    #       - "{{ groups.mirrorserver[0] }}:8443/openshift/release-images"
+    #       source: quay.io/openshift-release-dev/ocp-release
+
+
+  # Here are defined the OpenShift node VMs
   children:
     nfsserver:
+      # Used by the external_nfs step
+      # Configures an existing RHEL machine with a basic NFS server
+      #   for storage needs on OCP
       hosts:
-        bastion.mycluster.example.com:
+        my-rhel-nfs.mycluster.example.com:
           ansible_user: root
           ansible_become: true
           ansible_ssh_pass: mypassword
@@ -364,6 +480,16 @@ all:
               owner: nobody
               group: nobody
               mode: '0755'
+    lbserver:
+      # Used by the external_lb step
+      # Configures an existing RHEL machine with basic LB capabilities 
+      #   to install OCP
+      hosts:
+        my-rhel-lb.mycluster.example.com:
+          ansible_user: root
+          ansible_become: true
+          ansible_ssh_pass: mypassword
+          ocp4_deployment_loadbalancer_listen_ip: 192.168.160.10
 
     bootstrap:
       vars:
