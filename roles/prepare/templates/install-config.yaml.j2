@@ -75,5 +75,5 @@ platform:
 {% endif %}
 {% endif%}
 publish: External
-pullSecret: '{{ ocp4_deployment_cluster_pull_secrets_combined | d(ocp4_deployment_cluster_pull_secret) }}'
+pullSecret: '{{ ocp4_deployment_cluster_pull_secrets_combined | d(ocp4_deployment_cluster_pull_secret | from_json) | to_json }}'
 sshKey: "{{ ocp4_deployment_cluster_coreos_ssh_pubkey }}"
