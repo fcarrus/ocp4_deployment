@@ -77,6 +77,7 @@
     hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
     name: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template"
     is_template: true
+    validate_certs: false
 
 - name: Remove Local OVA Image
   delegate_to: localhost
