@@ -62,7 +62,7 @@
         hardware: "{{ ocp4_deployment_nodes_vmware_hardware }}"
         name: "{{ ocp4_deployment_nodes_fqdn | d(inventory_hostname) }}"
         state: poweredon
-        template: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template"
+        template: "{{ ocp4_deployment_rhcos_template_name }}"
         advanced_settings:
           - key: "guestinfo.ignition.config.data"
             value: "{{ ignition_file.content }}"

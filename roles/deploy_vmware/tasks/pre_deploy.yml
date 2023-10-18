@@ -21,7 +21,7 @@
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
     datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
-    name: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template"
+    name: "{{ ocp4_deployment_rhcos_template_name }}"
     folder: >-
       /{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}
     validate_certs: false
@@ -55,7 +55,7 @@
     username: "{{ ocp4_deployment_vmware_vcenter_username }}"
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
-    name: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template"
+    name: "{{ ocp4_deployment_rhcos_template_name }}"
     cluster: "{{ ocp4_deployment_vmware_cluster }}"
     datastore: "{{ ocp4_deployment_vmware_datastore }}"
     datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
@@ -75,7 +75,7 @@
     username: "{{ ocp4_deployment_vmware_vcenter_username }}"
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
-    name: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template"
+    name: "{{ ocp4_deployment_rhcos_template_name }}"
     is_template: true
     validate_certs: false
 

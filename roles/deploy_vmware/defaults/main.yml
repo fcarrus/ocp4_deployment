@@ -1,3 +1,5 @@
 ocp4_deployment_rhcos_download_mirror: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos
 
 ocp4_deployment_cluster_api_health_url: "https://api.{{ ocp4_deployment_cluster_name }}.{{ ocp4_deployment_cluster_basedomain }}:6443/healthz"
+
+ocp4_deployment_rhcos_template_name: "RHCOS-{{ __ocp4_deployment_cluster_rhcos_version }}-Template-{{ ocp4_deployment_cluster_name }}"
