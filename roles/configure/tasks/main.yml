@@ -212,4 +212,13 @@
   tags:
     - node-taints
 
+- name: Configure Let's Encrypt
+  ansible.builtin.include_tasks:
+    file: configure-letsencrypt.yml
+    apply:
+      tags:
+        - letsencrypt
+  tags:
+    - letsencrypt
+
 # code: language=ansible

@@ -1,0 +1,38 @@
+- name: Install Let's Encrypt operator
+  delegate_to: localhost
+  when: ocp4_deployment_cluster_letsencrypt_enable | bool
+  run_once: true
+  kubernetes.core.k8s:
+    kind: List
+    template: letsencrypt-manifests.j2
+
+- name: Annotate known routes
+  delegate_to: localhost
+  when: ocp4_deployment_cluster_letsencrypt_enable | bool
+  run_once: true
+  kubernetes.core.k8s:
+    kind: Route
+    api_version: v1
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    definition:
+      metadata:
+        annotations:
+          kubernetes.io/tls-acme: "true"
+  loop:
+    - namespace: openshift-authentication
+      name: oauth-openshift
+    - namespace: openshift-console
+      name: console
+    - namespace: openshift-console
+      name: downloads
+    - namespace: openshift-ingress-canary
+      name: canary
+    - namespace: openshift-monitoring
+      name: alertmanager-main
+    - namespace: openshift-monitoring
+      name: prometheus-k8s
+    - namespace: openshift-monitoring
+      name: prometheus-k8s-federate
+    - namespace: openshift-monitoring
+      name: thanos-querier
