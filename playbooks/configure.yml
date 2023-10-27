@@ -9,7 +9,44 @@
   vars:
     __ocp4_deployment_install_path: "{{ ocp4_deployment_install_path | d('/ocp4-deployment/') }}"
     __ocp4_deployment_cluster_rhcos_version: "{{ ocp4_deployment_cluster_version | split('.') | slice(2) | first | join('.') }}"
+    __ocp4_deployment_configure_valid_tags:
+      - all
+      - update-cap
+      - wait-nodes
+      - pull-secret
+      - manifests
+      - operators
+      - node-labels
+      - ingress
+      - odf
+      - proxy
+      - ca-bundle
+      - idp
+      - selfprov
+      - monitoring
+      - logging
+      - defns
+      - image-registry
+      - registry-sources
+      - api-certificate
+      - rhacm
+      - node-taints
   tasks:
+
+    - name: Assert called tags are correct
+      run_once: true
+      vars:
+        __ocp4_deployment_configure_invalid_tags: "{{ ansible_run_tags | difference(__ocp4_deployment_configure_valid_tags) }}"
+      ansible.builtin.assert:
+        that:
+          - __ocp4_deployment_configure_invalid_tags | length == 0
+        fail_msg: |
+          Invalid tag(s): {{ __ocp4_deployment_configure_invalid_tags | join(', ') }}.
+          Valid tags are: {{ __ocp4_deployment_configure_valid_tags | join(', ') }}
+        success_msg: "Tags are valid."
+      tags:
+        - always
+
     - name: Configure Cluster
       ansible.builtin.include_role:
         name: fcarrus.ocp4_deployment.configure
