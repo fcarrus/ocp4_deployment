@@ -2,7 +2,7 @@ ocp4_deployment_cluster_configure_mirror: false
 
 ocp4_deployment_clients_download_mirror: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ ocp4_deployment_cluster_version }}"
 
-ocp4_cluster_openshift_client_image: "registry.redhat.io/openshift4/ose-cli:v{{ __ocp4_deployment_cluster_rhcos_version }}"
+ocp4_cluster_openshift_client_image: "quay.io/openshift/origin-cli:{{ __ocp4_deployment_cluster_rhcos_version }}"
 
 ocp4_deployment_cluster_pod_network:
   - cidr: 10.128.0.0/14
