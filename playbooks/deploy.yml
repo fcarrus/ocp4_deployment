@@ -17,7 +17,7 @@
       ansible.builtin.stat:
         path: "{{ __ocp4_deployment_install_path }}/install"
       register: __ocp4_deployment_installdir_stat
-    
+
     - name: Assert install directory exists
       run_once: true
       ansible.builtin.assert:
@@ -26,7 +26,7 @@
         fail_msg: "Install directory does not exist. Please run the 'prepare' phase first."
 
     - name: Pre-Deploy VMware Tasks
-      when: 
+      when:
         - ocp4_deployment_is_upi | bool
         - ocp4_deployment_platform_provider == 'vmware'
       ansible.builtin.import_role:
