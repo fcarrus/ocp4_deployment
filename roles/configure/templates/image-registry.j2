@@ -21,8 +21,10 @@ spec:
 {% endfilter %}
 {% endif %}
   replicas: {{ ocp4_deployment_cluster_registry_replicas }}
-{% if ocp4_deployment_cluster_registry_storage_config is defined %}
   storage:
+{% if ocp4_deployment_cluster_registry_storage_config is defined %}
     pvc:
       claim: {{ ocp4_deployment_cluster_registry_storage_config.metadata.name }}
+{% else %}
+    emptyDir: {}
 {% endif %}
