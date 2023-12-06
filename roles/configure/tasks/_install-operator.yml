@@ -98,7 +98,7 @@
   until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
 
 - name: If Console Plugin is defined
-  when: 
+  when:
     - _ocp4_deployment_operator_enable_consoleplugin is defined
     - _ocp4_deployment_operator_enable_consoleplugin != ""
   block:
@@ -130,5 +130,12 @@
               ) | unique
               }}"
 
+- name: Create Operator Custom Resources # noqa: args[module]
+  delegate_to: localhost
+  run_once: true
+  kubernetes.core.k8s: "{{ customresource }}"
+  loop: "{{ _ocp4_deployment_operator_create_resources }}"
+  loop_control:
+    loop_var: customresource
 
 # code: language=ansible

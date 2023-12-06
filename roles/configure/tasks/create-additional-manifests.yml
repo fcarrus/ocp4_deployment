@@ -1,7 +1,9 @@
-- name: Create additional objects
+- name: Create additional objects # noqa: args[module]
   delegate_to: localhost
   run_once: true
-  kubernetes.core.k8s: "{{ item }}"
+  kubernetes.core.k8s: "{{ manifest }}"
   loop: "{{ ocp4_deployment_cluster_additional_manifests }}"
+  loop_control:
+    loop_var: manifest
 
 # code: language=ansible

@@ -10,6 +10,7 @@
         _ocp4_deployment_operator_sourcenamespace: "{{ _ocp4_additional_operator.operator_sourcenamespace }}"
         _ocp4_deployment_operator_all_namespaces: "{{ _ocp4_additional_operator.operator_all_namespaces | d(false) }}"
         _ocp4_deployment_operator_enable_consoleplugin: "{{ _ocp4_additional_operator.operator_enable_consoleplugin | d('') }}"
+        _ocp4_deployment_operator_create_resources: "{{ _ocp4_additional_operator.operator_create_resources | d([]) }}"
   loop: "{{ ocp4_deployment_cluster_additional_operators }}"
   loop_control:
     loop_var: _ocp4_additional_operator
