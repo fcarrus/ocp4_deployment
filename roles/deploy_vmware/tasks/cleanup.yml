@@ -8,7 +8,7 @@
     name: "{{ inventory_hostname }}"
     state: absent
     force: true
-    delete_from_inventory: true
+    
   register: _ocp4_deployment_nodes_cleanup
   retries: 5
   delay: 10
