@@ -12,6 +12,11 @@
     __ocp4_deployment_install_path: "{{ ocp4_deployment_install_path | d('/ocp4-deployment/') }}"
     __ocp4_deployment_cluster_rhcos_version: "{{ ocp4_deployment_cluster_version | split('.') | slice(2) | first | join('.') }}"
   tasks:
+    - name: List all machines to be deleted
+      run_once: true
+      ansible.builtin.debug:
+        var: ansible_play_hosts
+
     - name: Wait for confirmation
       ansible.builtin.pause:
         seconds: "{{ __ocp4_deployment_cleanup_pause_seconds }}"
