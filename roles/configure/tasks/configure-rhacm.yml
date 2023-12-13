@@ -5,18 +5,14 @@
       vars:
         _ocp4_deployment_operator_name: advanced-cluster-management
         _ocp4_deployment_operator_namespace: open-cluster-management
-        _ocp4_deployment_operator_channel: "{{ ocp4_deployment_cluster_rhacm_channel }}"
+        _ocp4_deployment_operator_channel: "{{ ocp4_deployment_configure_rhacm_channel }}"
         _ocp4_deployment_operator_source: redhat-operators
         _ocp4_deployment_operator_sourcenamespace: openshift-marketplace
-
-- name: Configure Cluster HUB
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s:
-    kind: MultiClusterHub
-    api_version: operator.open-cluster-management.io/v1
-    name: multiclusterhub
-    namespace: open-cluster-management
-    template: rhacm-clusterhub.j2
+        _ocp4_deployment_operator_create_resources:
+          - kind: MultiClusterHub
+            api_version: operator.open-cluster-management.io/v1
+            name: multiclusterhub
+            namespace: open-cluster-management
+            template: rhacm-clusterhub.j2
 
 # code: language=ansible
