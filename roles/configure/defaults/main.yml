@@ -32,9 +32,9 @@ ocp4_deployment_cluster_registry_replicas: 1
 
 ocp4_deployment_cluster_registry_expose: false
 
-ocp4_deployment_cluster_rhacm_channel: "release-2.8"
-
 ocp4_deployment_configure_rhacm_hub: false
+
+ocp4_deployment_configure_rhacm_channel: "release-2.8"
 
 ocp4_deployment_configure_rhacm_overrides:
   - enabled: true

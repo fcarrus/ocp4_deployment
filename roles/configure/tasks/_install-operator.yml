@@ -64,7 +64,7 @@
         namespace: "{{ _ocp4_deployment_operator_namespace }}"
       spec:
         channel: "{{ _ocp4_deployment_operator_channel }}"
-        installPlanApproval: "{{ _ocp4_deployment_operator_update_approval }}"
+        installPlanApproval: "{{ _ocp4_deployment_operator_update_approval | d('Automatic') }}"
         name: "{{ _ocp4_deployment_operator_name }}"
         source: "{{ _ocp4_deployment_operator_source | d('redhat-operators') }}"
         sourceNamespace: "{{ _ocp4_deployment_operator_sourcenamespace | d('openshift-marketplace') }}"
@@ -88,7 +88,7 @@
   block:
 
     - name: "Approve InstallPlan: {{ _ocp4_deployment_operator_name }}"
-      when: _ocp4_deployment_operator_update_approval != 'Automatic'
+      when: _ocp4_deployment_operator_update_approval | d('Automatic') != 'Automatic'
       delegate_to: localhost
       run_once: true
       kubernetes.core.k8s_json_patch:
@@ -151,7 +151,7 @@
   delegate_to: localhost
   run_once: true
   kubernetes.core.k8s: "{{ customresource }}"
-  loop: "{{ _ocp4_deployment_operator_create_resources }}"
+  loop: "{{ _ocp4_deployment_operator_create_resources | d([]) }}"
   loop_control:
     loop_var: customresource
 
