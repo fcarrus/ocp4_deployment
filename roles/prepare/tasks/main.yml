@@ -24,22 +24,55 @@
     path: "{{ __ocp4_deployment_install_path }}/install/bootstrap.ign"
   register: install_ignition_files
 
-- name: Download openshift-install binary
-  delegate_to: localhost
-  run_once: true
+- name: Check for oc binary
+  ansible.builtin.stat:
+    path: "{{ __ocp4_deployment_install_path }}/oc"
+  register: __ocp4_deployment_oc_binary
+
+- name: Check for openshift-install binary
+  ansible.builtin.stat:
+    path: "{{ __ocp4_deployment_install_path }}/openshift-install"
+  register: __ocp4_deployment_openshiftinstall_binary
+
+- name: Check for oc binary version
+  ansible.builtin.command:
+    chdir: "{{ __ocp4_deployment_install_path }}"
+    cmd: "{{ __ocp4_deployment_install_path }}/oc version --client"
+  register: __ocp4_deployment_oc_binary_version
+  changed_when: false
+  failed_when: false
+
+- name: Check for oc binary version
+  ansible.builtin.command:
+    chdir: "{{ __ocp4_deployment_install_path }}"
+    cmd: "{{ __ocp4_deployment_install_path }}/openshift-install version"
+  register: __ocp4_deployment_openshiftinstall_binary_version
+  changed_when: false
+  failed_when: false
+
+- name: Download oc binary
+  when: |
+    not __ocp4_deployment_oc_binary.stat.exists or
+    __ocp4_deployment_oc_binary_version.stdout_lines |
+      map('regex_search', '^Client Version: ' + ocp4_deployment_cluster_version + '$') |
+      select('string') | length == 0
   ansible.builtin.unarchive:
     remote_src: true
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    include: "{{ item.include }}"
-    creates: "{{ __ocp4_deployment_install_path }}/{{ item.include }}"
-  loop:
-    - src: "{{ ocp4_deployment_clients_download_mirror }}/openshift-install-linux.tar.gz"
-      dest: "{{ __ocp4_deployment_install_path }}/"
-      include: openshift-install
-    - src: "{{ ocp4_deployment_clients_download_mirror }}/openshift-client-linux.tar.gz"
-      dest: "{{ __ocp4_deployment_install_path }}/"
-      include: oc
+    src: "{{ ocp4_deployment_clients_download_mirror }}/openshift-client-linux.tar.gz"
+    dest: "{{ __ocp4_deployment_install_path }}/"
+    include: oc
+
+- name: Download openshift-install binary
+  when: |
+    not __ocp4_deployment_openshiftinstall_binary.stat.exists or
+    __ocp4_deployment_openshiftinstall_binary_version.stdout_lines |
+      map('regex_search', '^.*openshift-install ' + ocp4_deployment_cluster_version + '$') |
+      select('string') | length == 0
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ ocp4_deployment_clients_download_mirror }}/openshift-install-linux.tar.gz"
+    dest: "{{ __ocp4_deployment_install_path }}/"
+    include: openshift-install
 
 - name: Combine additional pull secrets
   ansible.builtin.set_fact:
