@@ -64,7 +64,7 @@
         namespace: "{{ _ocp4_deployment_operator_namespace }}"
       spec:
         channel: "{{ _ocp4_deployment_operator_channel }}"
-        installPlanApproval: Automatic
+        installPlanApproval: "{{ _ocp4_deployment_operator_update_approval }}"
         name: "{{ _ocp4_deployment_operator_name }}"
         source: "{{ _ocp4_deployment_operator_source | d('redhat-operators') }}"
         sourceNamespace: "{{ _ocp4_deployment_operator_sourcenamespace | d('openshift-marketplace') }}"
@@ -82,20 +82,37 @@
   delay: 5
   until: _ocp4_deployment_configure_subscription_information.resources[0].status.installplan.name is defined
 
-- name: "Wait for InstallPlan to Complete : {{ _ocp4_deployment_operator_installplan }}"
+- name: With InstallPlan
   vars:
     _ocp4_deployment_operator_installplan: "{{ _ocp4_deployment_configure_subscription_information.resources[0].status.installplan.name }}"
-  delegate_to: localhost
-  run_once: true
-  kubernetes.core.k8s_info:
-    api_version: operators.coreos.com/v1alpha1
-    name: "{{ _ocp4_deployment_operator_installplan }}"
-    namespace: "{{ _ocp4_deployment_operator_namespace }}"
-    kind: InstallPlan
-  register: _ocp4_deployment_installplan_completion
-  retries: 120
-  delay: 5
-  until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
+  block:
+
+    - name: "Approve InstallPlan: {{ _ocp4_deployment_operator_name }}"
+      when: _ocp4_deployment_operator_update_approval != 'Automatic'
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s_json_patch:
+        kind: InstallPlan
+        api_version: operators.coreos.com/v1alpha1
+        name: "{{ _ocp4_deployment_operator_installplan }}"
+        namespace: "{{ _ocp4_deployment_operator_namespace }}"
+        patch:
+          - op: add
+            path: /spec/approved
+            value: true
+
+    - name: "Wait for InstallPlan to Complete : {{ _ocp4_deployment_operator_installplan }}"
+      delegate_to: localhost
+      run_once: true
+      kubernetes.core.k8s_info:
+        api_version: operators.coreos.com/v1alpha1
+        name: "{{ _ocp4_deployment_operator_installplan }}"
+        namespace: "{{ _ocp4_deployment_operator_namespace }}"
+        kind: InstallPlan
+      register: _ocp4_deployment_installplan_completion
+      retries: 120
+      delay: 5
+      until: _ocp4_deployment_installplan_completion.resources[0].status.phase == "Complete"
 
 - name: If Console Plugin is defined
   when:
