@@ -16,7 +16,7 @@
           - groups.bootstrap | length == 1
         fail_msg: "Bootstrap group does not contain exactly one server."
 
-    - name: Check vars - master servers are 3 on standard clusters 
+    - name: Check vars - master servers are 3 on standard clusters
       when: ocp4_deployment_cluster_flavor == 'standard'
       ansible.builtin.assert:
         that:
@@ -55,6 +55,16 @@
           - ocp4_deployment_platform_provider in ['vmware', 'aws']
           # - more to add
         fail_msg: "Variable ocp4_deployment_platform_provider is not valid."
+
+    - name: Check vars - control plane minimum requirements (vmware)
+      when:
+        - ocp4_deployment_platform_provider == 'vmware'
+        - group_names in ['master_nodes', 'bootstrap']
+      ansible.builtin.assert:
+        that:
+          - ocp4_deployment_nodes_vmware_hardware.memory_mb >= 16384
+          - ocp4_deployment_nodes_vmware_hardware.num_cpus >= 4
+        fail_msg: "Not enough resources for master and bootstrap nodes."
 
     - name: Check vars - versions
       ansible.builtin.assert:
