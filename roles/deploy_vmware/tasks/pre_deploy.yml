@@ -1,7 +1,7 @@
 - name: Create vmware cluster folder
   delegate_to: localhost
-  # run_once: true
-  throttle: 1
+  run_once: "{{ ocp4_deployment_vmware_all_same_vcenter }}"
+  throttle: "{{ ocp4_deployment_vmware_all_same_vcenter | ternary(0, 1) }}"
   community.vmware.vcenter_folder:
     datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
     folder_name: "{{ ocp4_deployment_vmware_vcenter_create_subfolder }}"
@@ -16,16 +16,15 @@
 
 - name: Check for OVA template
   delegate_to: localhost
-  # run_once: true
-  throttle: 1
+  run_once: "{{ ocp4_deployment_vmware_all_same_vcenter }}"
+  throttle: "{{ ocp4_deployment_vmware_all_same_vcenter | ternary(0, 1) }}"
   community.vmware.vmware_guest_info:
     username: "{{ ocp4_deployment_vmware_vcenter_username }}"
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     hostname: "{{ ocp4_deployment_vmware_vcenter_hostname }}"
     datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
     name: "{{ ocp4_deployment_rhcos_template_name }}"
-    folder: >-
-      /{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}
+    folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}" # noqa: yaml[line-length]
     validate_certs: false
   register: template_info
   failed_when: false
@@ -52,8 +51,8 @@
 
 - name: Upload OVA file
   delegate_to: localhost
-  # run_once: true
-  throttle: 1
+  run_once: "{{ ocp4_deployment_vmware_all_same_vcenter }}"
+  throttle: "{{ ocp4_deployment_vmware_all_same_vcenter | ternary(0, 1) }}"
   community.vmware.vmware_deploy_ovf:
     username: "{{ ocp4_deployment_vmware_vcenter_username }}"
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
@@ -66,15 +65,15 @@
     power_on: false
     networks: "{u'VM Network':u'{{ ocp4_deployment_vmware_network }}'}"
     ovf: "{{ __ocp4_deployment_install_path }}/rhcos-vmware.x86_64.ova"
-    folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}"
+    folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}" # noqa: yaml[line-length]
     allow_duplicates: false
   when: |
     "instance" not in template_info
 
 - name: Mark OVA as template
   delegate_to: localhost
-  # run_once: true
-  throttle: 1
+  run_once: "{{ ocp4_deployment_vmware_all_same_vcenter }}"
+  throttle: "{{ ocp4_deployment_vmware_all_same_vcenter | ternary(0, 1) }}"
   community.vmware.vmware_guest:
     username: "{{ ocp4_deployment_vmware_vcenter_username }}"
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"

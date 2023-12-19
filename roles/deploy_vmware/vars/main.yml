@@ -1,2 +1,9 @@
 ---
 # vars file for deploy_vmware
+
+ocp4_deployment_vmware_all_same_vcenter: "{{
+    hostvars | dict2items |
+    selectattr('value.ocp4_deployment_vmware_vcenter_hostname') |
+    map(attribute='value.ocp4_deployment_vmware_vcenter_hostname') |
+    unique | length == 1
+  }}"
