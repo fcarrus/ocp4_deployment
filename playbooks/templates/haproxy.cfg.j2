@@ -59,16 +59,16 @@ defaults
 # main frontend which proxys to the backends
 #---------------------------------------------------------------------
 frontend api
-    bind {{ ocp4_deployment_loadbalancer_listen_ip | d('0.0.0.0') }}:6443
+    bind {{ ocp4_deployment_loadbalancer_api_listen_ip | d(ocp4_deployment_loadbalancer_api_listen_ip) | d('0.0.0.0') }}:6443
     default_backend controlplaneapi
 frontend machineconfig
-    bind {{ ocp4_deployment_loadbalancer_listen_ip | d('0.0.0.0') }}:22623
+    bind {{ ocp4_deployment_loadbalancer_api_listen_ip | d(ocp4_deployment_loadbalancer_api_listen_ip) | d('0.0.0.0') }}:22623
     default_backend controlplanemc
 frontend tlsrouter
-    bind {{ ocp4_deployment_loadbalancer_listen_ip | d('0.0.0.0') }}:443
+    bind {{ ocp4_deployment_loadbalancer_apps_listen_ip | d(ocp4_deployment_loadbalancer_api_listen_ip) | d('0.0.0.0') }}:443
     default_backend secure
 frontend insecurerouter
-    bind {{ ocp4_deployment_loadbalancer_listen_ip | d('0.0.0.0') }}:80
+    bind {{ ocp4_deployment_loadbalancer_apps_listen_ip | d(ocp4_deployment_loadbalancer_api_listen_ip) | d('0.0.0.0') }}:80
     default_backend insecure
 #---------------------------------------------------------------------
 # static backend
