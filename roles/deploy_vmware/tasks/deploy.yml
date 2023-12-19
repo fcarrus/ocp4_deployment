@@ -20,7 +20,7 @@
     password: "{{ ocp4_deployment_vmware_vcenter_password }}"
     datacenter: "{{ ocp4_deployment_vmware_datacenter }}"
     validate_certs: false
-    name: "{{ inventory_hostname }}"
+    name: "{{ ocp4_deployment_nodes_fqdn | d(inventory_hostname) }}"
 
   register: vmware_vm_info
   failed_when: false
@@ -57,7 +57,7 @@
         datastore: "{{ ocp4_deployment_vmware_datastore }}"
         validate_certs: false
         disk: "{{ ocp4_deployment_nodes_vmware_disks }}"
-        folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}"
+        folder: "/{{ ocp4_deployment_vmware_datacenter }}/vm{{ ocp4_deployment_vmware_vcenter_folder }}/{{ ocp4_deployment_vmware_vcenter_create_subfolder | d('') }}" # noqa: yaml[line-length]
         guest_id: coreos64Guest
         hardware: "{{ ocp4_deployment_nodes_vmware_hardware }}"
         name: "{{ ocp4_deployment_nodes_fqdn | d(inventory_hostname) }}"

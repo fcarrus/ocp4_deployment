@@ -7,7 +7,7 @@
     name: csr-auto-approver-config
     definition:
       data:
-        nodes: "{{ (groups.infra_nodes | d([]) + groups.worker_nodes | d([]) + groups.storage_nodes | d([]) ) | join(' ') }}"
+        nodes: "{% for node in (groups.infra_nodes | d([]) + groups.worker_nodes | d([]) + groups.storage_nodes | d([]) ) %}{{ hostvars[node].ocp4_deployment_nodes_fqdn | d(hostvars[node].inventory_hostname)}} {% endfor %}" # noqa: yaml[line-length]
 
 - name: Restart Cluster Auto Approver Pod
   delegate_to: localhost
